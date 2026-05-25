@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -45,8 +46,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.health.connect.client.PermissionController
@@ -109,26 +113,43 @@ suspend fun loadHCState(context: Context): HCState {
 
 @Composable
 fun QuoteBubble(quote: String) {
+    var charsShown by remember(quote) { mutableIntStateOf(0) }
+    LaunchedEffect(quote) {
+        charsShown = 0
+        for (i in 1..quote.length) {
+            charsShown = i
+            kotlinx.coroutines.delay(28)
+        }
+    }
+    val cursorOn by produceState(initialValue = true, key1 = quote) {
+        while (true) {
+            kotlinx.coroutines.delay(450)
+            value = !value
+        }
+    }
+    val done = charsShown >= quote.length
+    val visible = quote.take(charsShown)
+    val annotated = buildAnnotatedString {
+        append(visible)
+        if (!done || cursorOn) {
+            withStyle(SpanStyle(color = Accent, fontWeight = FontWeight.Black)) {
+                append("▋")
+            }
+        }
+    }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Accent.copy(alpha = 0.10f)),
     ) {
-        Row(
+        Text(
+            text = annotated,
+            color = OnDark,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.SemiBold,
+            fontStyle = FontStyle.Italic,
             modifier = Modifier.padding(20.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-            Text("“", color = Accent, fontSize = 40.sp, fontWeight = FontWeight.Black)
-            Spacer(Modifier.width(8.dp))
-            Text(
-                text = quote,
-                color = OnDark,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.SemiBold,
-                fontStyle = FontStyle.Italic,
-                modifier = Modifier.weight(1f),
-            )
-        }
+        )
     }
 }
 
