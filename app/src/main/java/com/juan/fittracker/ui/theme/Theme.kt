@@ -24,7 +24,7 @@ fun FitTrackerTheme(
 ) {
     val appColors = colorsFor(themeMode)
     val colorScheme = when (themeMode) {
-        AppThemeMode.Light -> lightColorScheme(
+        AppThemeMode.Light, AppThemeMode.Rosa -> lightColorScheme(
             background = appColors.background,
             surface = appColors.background,
             primary = appColors.accent,

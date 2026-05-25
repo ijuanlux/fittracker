@@ -9,6 +9,7 @@ enum class AppThemeMode(val label: String) {
     Dark("Oscuro"),
     Light("Día"),
     Galleto("Galleto"),
+    Rosa("Rosa palo"),
     ;
 }
 
@@ -53,10 +54,21 @@ private val GalletoColors = AppColors(
     drawChipPattern = true,
 )
 
+private val RosaColors = AppColors(
+    background = Color(0xFFFCE4EC),
+    surface = Color(0xFF7A2D4A).copy(alpha = 0.08f),
+    onSurface = Color(0xFF4A1F36),
+    accent = Color(0xFFC2185B),
+    danger = Color(0xFFC62828),
+    navBar = Color(0xFFF8BBD0),
+    drawChipPattern = false,
+)
+
 fun colorsFor(mode: AppThemeMode): AppColors = when (mode) {
     AppThemeMode.Dark -> DarkColors
     AppThemeMode.Light -> LightColors
     AppThemeMode.Galleto -> GalletoColors
+    AppThemeMode.Rosa -> RosaColors
 }
 
 val LocalAppColors = compositionLocalOf { DarkColors }
