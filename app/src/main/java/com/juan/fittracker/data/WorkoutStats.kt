@@ -15,6 +15,7 @@ data class WorkoutStats(
     val currentStreak: Int,
     val topExercises: List<Pair<String, Int>>,
     val topRoutines: List<Pair<String, Int>>,
+    val setsByMuscleGroup: List<Pair<String, Int>>,
 )
 
 object WorkoutStatsComputer {
@@ -59,6 +60,17 @@ object WorkoutStatsComputer {
             .take(3)
             .map { it.key to it.value }
 
+        val muscleCounts = mutableMapOf<String, Int>()
+        filtered.forEach { w ->
+            w.sets.forEach { set ->
+                val group = MuscleClassifier.classify(set.exerciseName, w.workout.notes)
+                muscleCounts[group] = (muscleCounts[group] ?: 0) + 1
+            }
+        }
+        val setsByMuscleGroup = muscleCounts.entries
+            .sortedByDescending { it.value }
+            .map { it.key to it.value }
+
         return WorkoutStats(
             rangeLabel = rangeLabel,
             totalWorkouts = totalWorkouts,
@@ -70,6 +82,7 @@ object WorkoutStatsComputer {
             currentStreak = currentStreak,
             topExercises = topExercises,
             topRoutines = topRoutines,
+            setsByMuscleGroup = setsByMuscleGroup,
         )
     }
 }

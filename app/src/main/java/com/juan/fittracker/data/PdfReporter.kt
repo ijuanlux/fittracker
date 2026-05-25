@@ -39,7 +39,8 @@ object PdfReporter {
             drawBackground(canvas)
             drawHeader(canvas, stats)
             drawStatsGrid(canvas, stats)
-            drawPieChart(canvas, stats)
+            drawMusclePieChart(canvas, stats)
+            drawTopExercisesList(canvas, stats)
             drawTopRoutines(canvas, stats)
             drawFooter(canvas)
 
@@ -143,7 +144,7 @@ object PdfReporter {
         }
     }
 
-    private fun drawPieChart(canvas: Canvas, stats: WorkoutStats) {
+    private fun drawMusclePieChart(canvas: Canvas, stats: WorkoutStats) {
         val sectionY = 290f
         val titlePaint = Paint().apply {
             isAntiAlias = true
@@ -151,9 +152,9 @@ object PdfReporter {
             textSize = 16f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         }
-        canvas.drawText("Quesito de ejercicios top", MARGIN, sectionY, titlePaint)
+        canvas.drawText("Quesito de series por zona", MARGIN, sectionY, titlePaint)
 
-        if (stats.topExercises.isEmpty()) {
+        if (stats.setsByMuscleGroup.isEmpty()) {
             val noData = Paint().apply {
                 isAntiAlias = true
                 color = Color.parseColor("#8B6F47")
@@ -163,13 +164,14 @@ object PdfReporter {
             return
         }
 
-        val cx = MARGIN + 110f
-        val cy = sectionY + 130f
-        val r = 90f
-        val total = stats.topExercises.sumOf { it.second }.toFloat()
+        val cx = MARGIN + 95f
+        val cy = sectionY + 115f
+        val r = 80f
+        val groups = stats.setsByMuscleGroup
+        val total = groups.sumOf { it.second }.toFloat()
         val rect = RectF(cx - r, cy - r, cx + r, cy + r)
         var start = -90f
-        stats.topExercises.forEachIndexed { i, (_, count) ->
+        groups.forEachIndexed { i, (_, count) ->
             val sweep = (count / total) * 360f
             val paint = Paint().apply {
                 isAntiAlias = true
@@ -177,7 +179,6 @@ object PdfReporter {
                 style = Paint.Style.FILL
             }
             canvas.drawArc(rect, start, sweep, true, paint)
-            // separator stroke
             val sep = Paint().apply {
                 isAntiAlias = true
                 color = Color.parseColor("#FFF8E7")
@@ -187,7 +188,7 @@ object PdfReporter {
             canvas.drawArc(rect, start, sweep, true, sep)
             start += sweep
         }
-        // inner circle (donut)
+        // inner donut
         val innerR = r * 0.42f
         val inner = Paint().apply {
             isAntiAlias = true
@@ -195,33 +196,77 @@ object PdfReporter {
             style = Paint.Style.FILL
         }
         canvas.drawCircle(cx, cy, innerR, inner)
+        // Total in donut center
+        val totalPaint = Paint().apply {
+            isAntiAlias = true
+            color = Color.parseColor("#2E1F14")
+            textSize = 18f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            textAlign = Paint.Align.CENTER
+        }
+        canvas.drawText("${total.toInt()}", cx, cy + 2f, totalPaint)
+        val sublabel = Paint().apply {
+            isAntiAlias = true
+            color = Color.parseColor("#8B6F47")
+            textSize = 9f
+            textAlign = Paint.Align.CENTER
+        }
+        canvas.drawText("series", cx, cy + 16f, sublabel)
 
-        // Legend
-        val legendX = cx + r + 40f
-        var legendY = cy - r + 16f
-        stats.topExercises.forEachIndexed { i, (name, count) ->
+        // Legend (right column, fits up to ~9 groups)
+        val legendX = cx + r + 30f
+        var legendY = cy - r + 12f
+        groups.take(9).forEachIndexed { i, (name, count) ->
             val swatch = Paint().apply { color = Color.parseColor(palette[i % palette.size]); isAntiAlias = true }
-            canvas.drawRoundRect(legendX, legendY - 10f, legendX + 16f, legendY + 4f, 3f, 3f, swatch)
+            canvas.drawRoundRect(legendX, legendY - 9f, legendX + 14f, legendY + 3f, 3f, 3f, swatch)
             val txt = Paint().apply {
                 isAntiAlias = true
                 color = Color.parseColor("#2E1F14")
-                textSize = 12f
-                typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+                textSize = 11f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             }
-            val pct = ((count / total) * 100f).toInt()
-            canvas.drawText("$name", legendX + 24f, legendY, txt)
+            canvas.drawText(name, legendX + 20f, legendY, txt)
             val small = Paint().apply {
                 isAntiAlias = true
                 color = Color.parseColor("#8B6F47")
-                textSize = 11f
+                textSize = 10f
             }
-            canvas.drawText("$count series · $pct%", legendX + 24f, legendY + 14f, small)
-            legendY += 36f
+            val pct = ((count / total) * 100f).toInt()
+            canvas.drawText("$count series · $pct%", legendX + 20f, legendY + 12f, small)
+            legendY += 28f
+        }
+    }
+
+    private fun drawTopExercisesList(canvas: Canvas, stats: WorkoutStats) {
+        if (stats.topExercises.isEmpty()) return
+        val sectionY = 470f
+        val titlePaint = Paint().apply {
+            isAntiAlias = true
+            color = Color.parseColor("#2E1F14")
+            textSize = 14f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        }
+        canvas.drawText("Ejercicios top", MARGIN, sectionY, titlePaint)
+        val itemPaint = Paint().apply {
+            isAntiAlias = true
+            color = Color.parseColor("#2E1F14")
+            textSize = 12f
+        }
+        val countPaint = Paint().apply {
+            isAntiAlias = true
+            color = Color.parseColor("#8B5A2B")
+            textSize = 12f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        }
+        stats.topExercises.forEachIndexed { i, (name, count) ->
+            val y = sectionY + 22f + i * 18f
+            canvas.drawText("${i + 1}. $name", MARGIN, y, itemPaint)
+            canvas.drawText("× $count", PAGE_W - MARGIN - 40f, y, countPaint)
         }
     }
 
     private fun drawTopRoutines(canvas: Canvas, stats: WorkoutStats) {
-        val sectionY = 580f
+        val sectionY = 620f
         val titlePaint = Paint().apply {
             isAntiAlias = true
             color = Color.parseColor("#2E1F14")

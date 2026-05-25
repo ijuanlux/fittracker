@@ -1,6 +1,7 @@
 package com.juan.fittracker.ui.workouts
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -251,12 +252,9 @@ fun WorkoutStatsScreen(profile: UserProfile, onBack: () -> Unit) {
                     SmallStatCard("Racha actual", "${stats.currentStreak} días", Modifier.weight(1f))
                 }
             }
-            if (stats.topExercises.isNotEmpty()) {
-                item { ListCard("Ejercicios top", stats.topExercises) }
-            }
-            if (stats.topRoutines.isNotEmpty()) {
-                item { ListCard("Rutinas top", stats.topRoutines) }
-            }
+            item { MuscleBreakdownCard(stats.setsByMuscleGroup) }
+            item { ListCard("Ejercicios top", stats.topExercises) }
+            item { ListCard("Rutinas top", stats.topRoutines) }
         }
     }
 
@@ -316,6 +314,75 @@ private fun SmallStatCard(label: String, value: String, modifier: Modifier = Mod
 }
 
 @Composable
+private fun MuscleBreakdownCard(items: List<Pair<String, Int>>) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text(
+                "Series por zona",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(Modifier.height(8.dp))
+            if (items.isEmpty()) {
+                Text(
+                    "Aún no hay sets para clasificar. Añade un entreno y vuelvo a contarte.",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    fontSize = 13.sp,
+                )
+                return@Card
+            }
+            val max = items.maxOf { it.second }.toFloat().coerceAtLeast(1f)
+            items.forEach { (group, count) ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        group,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.width(96.dp),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(14.dp)
+                            .background(
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                                RoundedCornerShape(7.dp),
+                            ),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(count.toFloat() / max)
+                                .height(14.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.primary,
+                                    RoundedCornerShape(7.dp),
+                                ),
+                        )
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        "$count",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.width(36.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun ListCard(title: String, items: List<Pair<String, Int>>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -325,6 +392,14 @@ private fun ListCard(title: String, items: List<Pair<String, Int>>) {
         Column(modifier = Modifier.padding(20.dp)) {
             Text(title, color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
+            if (items.isEmpty()) {
+                Text(
+                    "Sin datos en este rango.",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    fontSize = 13.sp,
+                )
+                return@Card
+            }
             items.forEachIndexed { idx, (name, count) ->
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
