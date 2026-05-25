@@ -28,6 +28,7 @@ object UserPrefs {
     private val KEY_REMINDER_HOUR = intPreferencesKey("reminder_hour")
     private val KEY_REMINDER_MINUTE = intPreferencesKey("reminder_minute")
     private val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
+    private val KEY_TOUR_SEEN = booleanPreferencesKey("tour_seen")
 
     fun observeState(context: Context): Flow<OnboardingState> =
         context.dataStore.data.map { prefs ->
@@ -83,6 +84,18 @@ object UserPrefs {
 
     suspend fun saveThemeMode(context: Context, modeName: String) {
         context.dataStore.edit { it[KEY_THEME_MODE] = modeName }
+    }
+
+    fun observeTourSeen(context: Context): Flow<Boolean> =
+        context.dataStore.data.map { it[KEY_TOUR_SEEN] ?: false }
+
+    suspend fun setTourSeen(context: Context, seen: Boolean) {
+        context.dataStore.edit { it[KEY_TOUR_SEEN] = seen }
+    }
+
+    suspend fun resetEverything(context: Context) {
+        context.dataStore.edit { it.clear() }
+        com.juan.fittracker.data.Db.get(context).clearAllTables()
     }
 
     private inline fun <reified E : Enum<E>> enumOrDefault(value: String?, default: E): E =

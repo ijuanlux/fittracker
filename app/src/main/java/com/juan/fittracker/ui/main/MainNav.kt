@@ -317,12 +317,6 @@ private fun HomeScreen(profile: UserProfile) {
             line1 = "${profile.frequency.label} · ${profile.frequency.days}",
             line2 = "${profile.heightCm} cm · ${profile.weightKg} kg",
         )
-        Spacer(Modifier.height(16.dp))
-        SummaryCard(
-            title = "Próximamente",
-            line1 = "Logros, badges y evolución de galletoide",
-            line2 = "Comparativas semanales y récords personales",
-        )
         Spacer(Modifier.height(24.dp))
     }
 }

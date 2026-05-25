@@ -17,9 +17,19 @@ android {
         versionName = "0.1.0"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file("galleta-release.jks")
+            storePassword = "galleta-fittracker"
+            keyAlias = "galleta"
+            keyPassword = "galleta-fittracker"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 

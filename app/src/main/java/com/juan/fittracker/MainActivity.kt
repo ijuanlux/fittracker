@@ -22,11 +22,13 @@ import com.juan.fittracker.ui.main.MainNav
 import com.juan.fittracker.ui.onboarding.OnboardingScreen
 import com.juan.fittracker.ui.theme.AppThemeMode
 import com.juan.fittracker.ui.theme.FitTrackerTheme
+import com.juan.fittracker.ui.tour.TourScreen
 import kotlinx.coroutines.launch
 
 private sealed class Screen {
     data object Splash : Screen()
     data object Onboarding : Screen()
+    data class Tour(val profile: UserProfile) : Screen()
     data class Main(val profile: UserProfile) : Screen()
 }
 
@@ -66,6 +68,9 @@ private fun AppContent() {
     val onboardingState by produceState<OnboardingState>(initialValue = OnboardingState.Loading) {
         UserPrefs.observeState(context).collect { value = it }
     }
+    val tourSeen by produceState<Boolean?>(initialValue = null) {
+        UserPrefs.observeTourSeen(context).collect { value = it }
+    }
     var screen by remember { mutableStateOf<Screen>(Screen.Splash) }
 
     Crossfade(
@@ -76,10 +81,12 @@ private fun AppContent() {
         when (current) {
             Screen.Splash -> {
                 SplashScreen(
-                    isReady = onboardingState !is OnboardingState.Loading,
+                    isReady = onboardingState !is OnboardingState.Loading && tourSeen != null,
                     onFinished = {
                         screen = when (val s = onboardingState) {
-                            is OnboardingState.Onboarded -> Screen.Main(s.profile)
+                            is OnboardingState.Onboarded ->
+                                if (tourSeen == true) Screen.Main(s.profile)
+                                else Screen.Tour(s.profile)
                             else -> Screen.Onboarding
                         }
                     },
@@ -89,15 +96,24 @@ private fun AppContent() {
                 OnboardingScreen(onFinished = { profile ->
                     scope.launch {
                         UserPrefs.save(context, profile)
-                        screen = Screen.Main(profile)
+                        screen = Screen.Tour(profile)
                     }
                 })
             }
+            is Screen.Tour -> TourScreen(
+                profile = current.profile,
+                onFinish = {
+                    scope.launch {
+                        UserPrefs.setTourSeen(context, true)
+                        screen = Screen.Main(current.profile)
+                    }
+                },
+            )
             is Screen.Main -> MainNav(
                 profile = current.profile,
                 onResetProfile = {
                     scope.launch {
-                        UserPrefs.clear(context)
+                        UserPrefs.resetEverything(context)
                         screen = Screen.Onboarding
                     }
                 },
