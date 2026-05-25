@@ -27,6 +27,7 @@ object UserPrefs {
     private val KEY_REMINDER_ENABLED = booleanPreferencesKey("reminder_enabled")
     private val KEY_REMINDER_HOUR = intPreferencesKey("reminder_hour")
     private val KEY_REMINDER_MINUTE = intPreferencesKey("reminder_minute")
+    private val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
 
     fun observeState(context: Context): Flow<OnboardingState> =
         context.dataStore.data.map { prefs ->
@@ -75,6 +76,13 @@ object UserPrefs {
             prefs[KEY_REMINDER_HOUR] = settings.hour
             prefs[KEY_REMINDER_MINUTE] = settings.minute
         }
+    }
+
+    fun observeThemeMode(context: Context): Flow<String?> =
+        context.dataStore.data.map { it[KEY_THEME_MODE] }
+
+    suspend fun saveThemeMode(context: Context, modeName: String) {
+        context.dataStore.edit { it[KEY_THEME_MODE] = modeName }
     }
 
     private inline fun <reified E : Enum<E>> enumOrDefault(value: String?, default: E): E =

@@ -42,6 +42,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
@@ -76,9 +77,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private val Accent = Color(0xFFFFC58A)
-private val OnDark = Color(0xFFEDE3D6)
-private val BgDark = Color(0xFF15100B)
+private val Accent: Color
+    @androidx.compose.runtime.Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.primary
+private val OnDark: Color
+    @androidx.compose.runtime.Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
+private val BgDark: Color
+    @androidx.compose.runtime.Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.background
 private val GoldStar = Color(0xFFFFD54F)
 
 private sealed class NearbyState {

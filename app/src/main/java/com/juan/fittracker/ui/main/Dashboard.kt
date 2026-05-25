@@ -30,6 +30,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -69,10 +70,16 @@ import java.util.Locale
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-internal val Accent = Color(0xFFFFC58A)
-internal val OnDark = Color(0xFFEDE3D6)
+internal val Accent: Color
+    @Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.primary
+internal val OnDark: Color
+    @Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
 private val PositiveGreen = Color(0xFF7BD389)
-private val NegativeRed = Color(0xFFFF8A80)
+private val NegativeRed: Color
+    @Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.error
+@Composable
+private fun cardSurface(): Color =
+    com.juan.fittracker.ui.theme.LocalAppColors.current.surface
 
 sealed class HCState {
     data object Loading : HCState()
@@ -357,7 +364,7 @@ fun CaloriesCard(balance: CaloriesBalance) {
     val (statusColor, statusBg) = when (balance.status) {
         NutritionStatus.Deficit -> Color(0xFF7BD389) to Color(0xFF7BD389).copy(alpha = 0.15f)
         NutritionStatus.Maintenance -> Accent to Accent.copy(alpha = 0.15f)
-        NutritionStatus.Surplus -> Color(0xFFFF8A80) to Color(0xFFFF8A80).copy(alpha = 0.15f)
+        NutritionStatus.Surplus -> MaterialTheme.colorScheme.error to MaterialTheme.colorScheme.error.copy(alpha = 0.15f)
     }
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -529,7 +536,7 @@ fun ConnectHealthCard(onConnect: () -> Unit) {
                 shape = RoundedCornerShape(24.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Accent,
-                    contentColor = Color(0xFF15100B),
+                    contentColor = MaterialTheme.colorScheme.background,
                 ),
             ) {
                 Text("Conectar con Salud", fontWeight = FontWeight.Bold)

@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,8 +45,10 @@ import com.juan.fittracker.data.SoundFx
 import com.juan.fittracker.ui.effects.ConfettiOverlay
 import kotlinx.coroutines.delay
 
-private val Accent = Color(0xFFFFC58A)
-private val OnDark = Color(0xFFEDE3D6)
+private val Accent: Color
+    @androidx.compose.runtime.Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.primary
+private val OnDark: Color
+    @androidx.compose.runtime.Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
 
 @Composable
 fun AchievementsSection() {
@@ -79,7 +82,7 @@ fun AchievementsSection() {
                     ) {
                         Text(
                             "Nivel $level",
-                            color = Color(0xFF15100B),
+                            color = MaterialTheme.colorScheme.background,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Black,
                         )
@@ -255,14 +258,14 @@ fun AchievementUnlockBanner() {
                     Text(ach.emoji, fontSize = 36.sp)
                     Spacer(Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("¡Logro desbloqueado!", color = Color(0xFF15100B), fontSize = 12.sp, fontWeight = FontWeight.Black)
+                        Text("¡Logro desbloqueado!", color = MaterialTheme.colorScheme.background, fontSize = 12.sp, fontWeight = FontWeight.Black)
                         Spacer(Modifier.height(2.dp))
-                        Text(ach.title, color = Color(0xFF15100B), fontSize = 17.sp, fontWeight = FontWeight.Black)
-                        Text(ach.description, color = Color(0xFF15100B).copy(alpha = 0.75f), fontSize = 12.sp)
+                        Text(ach.title, color = MaterialTheme.colorScheme.background, fontSize = 17.sp, fontWeight = FontWeight.Black)
+                        Text(ach.description, color = MaterialTheme.colorScheme.background.copy(alpha = 0.75f), fontSize = 12.sp)
                     }
                     Box(
                         modifier = Modifier
-                            .background(Color(0xFF15100B), RoundedCornerShape(10.dp))
+                            .background(MaterialTheme.colorScheme.background, RoundedCornerShape(10.dp))
                             .padding(horizontal = 10.dp, vertical = 6.dp),
                     ) {
                         Text("+${ach.xp}", color = Accent, fontWeight = FontWeight.Black, fontSize = 14.sp)

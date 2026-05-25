@@ -46,6 +46,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -78,10 +79,14 @@ import com.juan.fittracker.data.formatShortDate
 import com.juan.fittracker.ui.effects.ConfettiOverlay
 import kotlinx.coroutines.launch
 
-private val Accent = Color(0xFFFFC58A)
-private val OnDark = Color(0xFFEDE3D6)
-private val BgDark = Color(0xFF15100B)
-private val Danger = Color(0xFFFF8A80)
+private val Accent: Color
+    @androidx.compose.runtime.Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.primary
+private val OnDark: Color
+    @androidx.compose.runtime.Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
+private val BgDark: Color
+    @androidx.compose.runtime.Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.background
+private val Danger: Color
+    @androidx.compose.runtime.Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.error
 
 private sealed class Mode {
     data object List : Mode()

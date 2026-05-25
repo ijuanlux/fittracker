@@ -20,6 +20,7 @@ import com.juan.fittracker.data.UserProfile
 import com.juan.fittracker.ui.SplashScreen
 import com.juan.fittracker.ui.main.MainNav
 import com.juan.fittracker.ui.onboarding.OnboardingScreen
+import com.juan.fittracker.ui.theme.AppThemeMode
 import com.juan.fittracker.ui.theme.FitTrackerTheme
 import kotlinx.coroutines.launch
 
@@ -34,15 +35,31 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            FitTrackerTheme {
-                AppRoot()
-            }
+            AppRoot()
         }
     }
 }
 
 @Composable
 private fun AppRoot() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    val themeName by produceState<String?>(initialValue = null) {
+        UserPrefs.observeThemeMode(context).collect { value = it }
+    }
+    val themeMode = remember(themeName) {
+        runCatching { AppThemeMode.valueOf(themeName ?: "") }
+            .getOrDefault(AppThemeMode.Dark)
+    }
+
+    FitTrackerTheme(themeMode = themeMode) {
+        AppContent()
+    }
+}
+
+@Composable
+private fun AppContent() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 

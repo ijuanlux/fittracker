@@ -31,6 +31,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -76,6 +78,10 @@ import com.juan.fittracker.data.totalKcal
 import com.juan.fittracker.ui.CookieAvatar
 import com.juan.fittracker.ui.achievements.AchievementUnlockBanner
 import com.juan.fittracker.ui.achievements.AchievementsSection
+import com.juan.fittracker.ui.theme.AppThemeMode
+import com.juan.fittracker.ui.theme.LocalAppColors
+import com.juan.fittracker.ui.theme.LocalThemeMode
+import androidx.compose.material3.MaterialTheme
 import com.juan.fittracker.ui.food.FoodScreen
 import com.juan.fittracker.ui.nearby.NearbyScreen
 import com.juan.fittracker.ui.workouts.WorkoutsScreen
@@ -96,8 +102,8 @@ fun MainNav(profile: UserProfile, onResetProfile: () -> Unit) {
     Scaffold(
         bottomBar = {
             NavigationBar(
-                containerColor = Color(0xFF1A1310),
-                contentColor = Color(0xFFEDE3D6),
+                containerColor = LocalAppColors.current.navBar,
+                contentColor = MaterialTheme.colorScheme.onSurface,
             ) {
                 Tab.entries.forEach { t ->
                     NavigationBarItem(
@@ -106,17 +112,17 @@ fun MainNav(profile: UserProfile, onResetProfile: () -> Unit) {
                         icon = { Icon(t.icon, contentDescription = t.label) },
                         label = { Text(t.label) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF15100B),
-                            selectedTextColor = Color(0xFFFFC58A),
-                            indicatorColor = Color(0xFFFFC58A),
-                            unselectedIconColor = Color(0xFFEDE3D6).copy(alpha = 0.7f),
-                            unselectedTextColor = Color(0xFFEDE3D6).copy(alpha = 0.7f),
+                            selectedIconColor = MaterialTheme.colorScheme.background,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            indicatorColor = MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         ),
                     )
                 }
             }
         },
-        containerColor = Color(0xFF15100B),
+        containerColor = Color.Transparent,
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
             when (tab) {
@@ -243,13 +249,13 @@ private fun HomeScreen(profile: UserProfile) {
                 Sex.Female -> "¡Hola, campeona!"
                 Sex.Unspecified -> "¡Hola, crack!"
             },
-            color = Color(0xFFFFC58A),
+            color = MaterialTheme.colorScheme.primary,
             fontSize = 26.sp,
             fontWeight = FontWeight.Black,
         )
         Text(
             text = "Tu galletoide te lee según el día",
-            color = Color(0xFFEDE3D6).copy(alpha = 0.7f),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
             fontSize = 14.sp,
         )
         Spacer(Modifier.height(16.dp))
@@ -341,7 +347,7 @@ private fun ProfileScreen(profile: UserProfile, onResetProfile: () -> Unit) {
         Spacer(Modifier.height(16.dp))
         Text(
             text = "Tu perfil",
-            color = Color(0xFFFFC58A),
+            color = MaterialTheme.colorScheme.primary,
             fontSize = 26.sp,
             fontWeight = FontWeight.Black,
         )
@@ -355,6 +361,8 @@ private fun ProfileScreen(profile: UserProfile, onResetProfile: () -> Unit) {
         AchievementsSection()
         Spacer(Modifier.height(32.dp))
         ReminderCard()
+        Spacer(Modifier.height(20.dp))
+        ThemeCard()
         Spacer(Modifier.height(24.dp))
         OutlinedButton(
             onClick = { showResetDialog = true },
@@ -365,7 +373,7 @@ private fun ProfileScreen(profile: UserProfile, onResetProfile: () -> Unit) {
         ) {
             Text(
                 "Resetear perfil",
-                color = Color(0xFFFF8A80),
+                color = MaterialTheme.colorScheme.error,
                 fontWeight = FontWeight.SemiBold,
             )
         }
@@ -378,14 +386,14 @@ private fun ProfileScreen(profile: UserProfile, onResetProfile: () -> Unit) {
             title = {
                 Text(
                     "¿Resetear perfil?",
-                    color = Color(0xFFFFC58A),
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                 )
             },
             text = {
                 Text(
                     "Se borrarán todos tus datos y volverás al onboarding desde el inicio. Esta acción no se puede deshacer.",
-                    color = Color(0xFFEDE3D6).copy(alpha = 0.85f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
                 )
             },
             confirmButton = {
@@ -393,16 +401,57 @@ private fun ProfileScreen(profile: UserProfile, onResetProfile: () -> Unit) {
                     showResetDialog = false
                     onResetProfile()
                 }) {
-                    Text("Sí, resetear", color = Color(0xFFFF8A80), fontWeight = FontWeight.Bold)
+                    Text("Sí, resetear", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showResetDialog = false }) {
-                    Text("Cancelar", color = Color(0xFFEDE3D6))
+                    Text("Cancelar", color = MaterialTheme.colorScheme.onSurface)
                 }
             },
             containerColor = Color(0xFF2A1F18),
         )
+    }
+}
+
+@Composable
+private fun ThemeCard() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val currentMode = LocalThemeMode.current
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text("Tema", color = MaterialTheme.colorScheme.primary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Elija el ambiente de la galletoide",
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                fontSize = 13.sp,
+            )
+            Spacer(Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                AppThemeMode.entries.forEach { mode ->
+                    FilterChip(
+                        selected = currentMode == mode,
+                        onClick = {
+                            scope.launch { UserPrefs.saveThemeMode(context, mode.name) }
+                        },
+                        label = { Text(mode.label, fontSize = 13.sp, fontWeight = FontWeight.SemiBold) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = Color.White.copy(alpha = 0.06f),
+                            labelColor = MaterialTheme.colorScheme.onSurface,
+                            selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
+                            selectedLabelColor = MaterialTheme.colorScheme.primary,
+                        ),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -447,7 +496,7 @@ private fun ReminderCard() {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "Recordatorio diario",
-                        color = Color(0xFFFFC58A),
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -457,7 +506,7 @@ private fun ReminderCard() {
                             "Galletoide te avisará a las ${"%02d".format(settings.hour)}:${"%02d".format(settings.minute)}"
                         else
                             "Activa pa' que la galletoide te recuerde entrenar",
-                        color = Color(0xFFEDE3D6).copy(alpha = 0.7f),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         fontSize = 13.sp,
                     )
                 }
@@ -465,9 +514,9 @@ private fun ReminderCard() {
                     checked = settings.enabled,
                     onCheckedChange = { setEnabled(it) },
                     colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color(0xFF15100B),
-                        checkedTrackColor = Color(0xFFFFC58A),
-                        uncheckedThumbColor = Color(0xFFEDE3D6).copy(alpha = 0.7f),
+                        checkedThumbColor = MaterialTheme.colorScheme.background,
+                        checkedTrackColor = MaterialTheme.colorScheme.primary,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         uncheckedTrackColor = Color.White.copy(alpha = 0.10f),
                     ),
                 )
@@ -481,7 +530,7 @@ private fun ReminderCard() {
                 ) {
                     Text(
                         "Cambiar hora · ${"%02d".format(settings.hour)}:${"%02d".format(settings.minute)}",
-                        color = Color(0xFFFFC58A),
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.SemiBold,
                     )
                 }
@@ -507,14 +556,14 @@ private fun ReminderCard() {
                             ReminderScheduler.enable(context, newSettings.hour, newSettings.minute)
                         }
                     }
-                }) { Text("OK", color = Color(0xFFFFC58A)) }
+                }) { Text("OK", color = MaterialTheme.colorScheme.primary) }
             },
             dismissButton = {
                 TextButton(onClick = { showTimePicker = false }) {
-                    Text("Cancelar", color = Color(0xFFEDE3D6))
+                    Text("Cancelar", color = MaterialTheme.colorScheme.onSurface)
                 }
             },
-            title = { Text("Hora del recordatorio", color = Color(0xFFFFC58A)) },
+            title = { Text("Hora del recordatorio", color = MaterialTheme.colorScheme.primary) },
             text = { TimePicker(state = pickerState) },
             containerColor = Color(0xFF2A1F18),
         )
@@ -529,8 +578,8 @@ private fun ProfileRow(label: String, value: String) {
             .padding(vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(label, color = Color(0xFFEDE3D6).copy(alpha = 0.65f), fontSize = 15.sp)
-        Text(value, color = Color(0xFFEDE3D6), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+        Text(label, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f), fontSize = 15.sp)
+        Text(value, color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -542,10 +591,10 @@ private fun SummaryCard(title: String, line1: String, line2: String) {
         colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Text(title, color = Color(0xFFFFC58A), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Text(title, color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
-            Text(line1, color = Color(0xFFEDE3D6), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-            Text(line2, color = Color(0xFFEDE3D6).copy(alpha = 0.7f), fontSize = 14.sp)
+            Text(line1, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(line2, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontSize = 14.sp)
         }
     }
 }

@@ -59,6 +59,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -68,6 +69,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -86,11 +88,18 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import java.io.File
 import java.util.UUID
+import com.juan.fittracker.data.AchievementUnlock
+import com.juan.fittracker.data.CookieMood
 import com.juan.fittracker.data.Db
+import com.juan.fittracker.data.FoodClassifier
 import com.juan.fittracker.data.FoodComments
 import com.juan.fittracker.data.FoodCuisine
+import com.juan.fittracker.data.FoodVibe
+import com.juan.fittracker.data.Levels
+import com.juan.fittracker.data.Nutrition
 import com.juan.fittracker.data.RolaPhrases
 import com.juan.fittracker.data.SoundFx
+import com.juan.fittracker.ui.CookieAvatar
 import com.juan.fittracker.ui.effects.ConfettiOverlay
 import com.juan.fittracker.data.MealEntry
 import com.juan.fittracker.data.MealType
@@ -104,10 +113,14 @@ import com.juan.fittracker.data.totalKcal
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private val Accent = Color(0xFFFFC58A)
-private val OnDark = Color(0xFFEDE3D6)
-private val BgDark = Color(0xFF15100B)
-private val Danger = Color(0xFFFF8A80)
+private val Accent: Color
+    @androidx.compose.runtime.Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.primary
+private val OnDark: Color
+    @androidx.compose.runtime.Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
+private val BgDark: Color
+    @androidx.compose.runtime.Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.background
+private val Danger: Color
+    @androidx.compose.runtime.Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.error
 
 private sealed class Mode {
     data object List : Mode()
@@ -155,9 +168,22 @@ private fun FoodList(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val dao = remember(context) { Db.get(context).mealDao() }
+    val achievementDao = remember(context) { Db.get(context).achievementDao() }
     val allMeals by dao.observeAll().collectAsState(initial = emptyList())
+    val unlocks by achievementDao.observeAll().collectAsState(initial = emptyList())
     val todayMeals = allMeals.todayOnly()
     val todayKcal = todayMeals.totalKcal()
+    val targetKcal = remember(profile) { Nutrition.targetKcal(profile).toInt() }
+    val vibe = remember(todayMeals.size, todayKcal, targetKcal) {
+        FoodClassifier.classify(todayMeals, targetKcal)
+    }
+    val galletoideLevel = Levels.level(Levels.totalXp(unlocks))
+    val cookieMood = when (vibe) {
+        FoodVibe.Empty -> CookieMood.Neutral
+        FoodVibe.Fit -> CookieMood.Happy
+        FoodVibe.Neutral -> CookieMood.Neutral
+        FoodVibe.Heavy -> CookieMood.Stuffed
+    }
 
     var ambientKey by remember { mutableIntStateOf(0) }
     LaunchedEffect(Unit) {
@@ -166,8 +192,14 @@ private fun FoodList(
             ambientKey++
         }
     }
-    val ambient = remember(ambientKey, profile.sex) {
-        RolaPhrases.pick(RolaPhrases.foodAmbient, ambientKey, profile.sex)
+    val ambient = remember(ambientKey, profile.sex, vibe) {
+        RolaPhrases.pick(FoodClassifier.poolFor(vibe), ambientKey, profile.sex)
+    }
+    var speaking by remember { mutableStateOf(true) }
+    LaunchedEffect(ambient) {
+        speaking = true
+        delay(2200)
+        speaking = false
     }
 
     LaunchedEffect(bannerComment) {
@@ -197,7 +229,13 @@ private fun FoodList(
                 TodayKcalCard(todayKcal = todayKcal)
             }
             item {
-                AmbientQuoteCard(quote = ambient, onTap = { ambientKey++ })
+                GalletoideMealCard(
+                    quote = ambient,
+                    mood = cookieMood,
+                    level = galletoideLevel,
+                    speaking = speaking,
+                    onTap = { ambientKey++ },
+                )
             }
             item {
                 AnimatedVisibility(visible = bannerComment != null) {
@@ -262,21 +300,35 @@ private fun TodayKcalCard(todayKcal: Int) {
 }
 
 @Composable
-private fun AmbientQuoteCard(quote: String, onTap: () -> Unit) {
+private fun GalletoideMealCard(
+    quote: String,
+    mood: CookieMood,
+    level: Int,
+    speaking: Boolean,
+    onTap: () -> Unit,
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onTap() },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Accent.copy(alpha = 0.10f)),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Accent.copy(alpha = 0.12f)),
     ) {
-        Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("🍪", fontSize = 22.sp)
-            Spacer(Modifier.width(10.dp))
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            CookieAvatar(
+                modifier = Modifier.size(96.dp),
+                mood = mood,
+                isSpeaking = speaking,
+                level = level,
+            )
+            Spacer(Modifier.width(12.dp))
             Text(
                 text = quote,
                 color = OnDark,
-                fontSize = 13.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.weight(1f),
             )
@@ -428,6 +480,7 @@ private fun AddMealForm(
     var dateMs by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var showDatePicker by remember { mutableStateOf(false) }
     var cuisine by remember { mutableStateOf(FoodCuisine.Rola) }
+    val selectedPresets = remember { mutableStateListOf<com.juan.fittracker.data.FoodPreset>() }
 
     val takePictureLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicture(),
@@ -570,11 +623,49 @@ private fun AddMealForm(
             Spacer(Modifier.height(12.dp))
             QuickFoodsGrid(
                 foods = quickFoodsFor(cuisine),
-                onPick = { p ->
-                    name = p.name
-                    kcalText = p.kcal.toString()
+                selected = selectedPresets,
+                onToggle = { p ->
+                    if (selectedPresets.contains(p)) selectedPresets.remove(p)
+                    else selectedPresets.add(p)
                 },
             )
+            if (selectedPresets.isNotEmpty()) {
+                Spacer(Modifier.height(12.dp))
+                Button(
+                    onClick = {
+                        if (saving) return@Button
+                        saving = true
+                        val toInsert = selectedPresets.toList()
+                        scope.launch {
+                            toInsert.forEach { p ->
+                                dao.insert(
+                                    MealEntry(
+                                        name = p.name,
+                                        kcal = p.kcal,
+                                        type = mealType.name,
+                                        dateEpochMs = dateMs,
+                                        photoPath = null,
+                                    ),
+                                )
+                            }
+                            val first = toInsert.first().name
+                            val comment = FoodComments.commentFor(first, bro)
+                            onSaved(comment ?: "¡Añadidos ${toInsert.size} platos, ${bro}!")
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.background,
+                    ),
+                ) {
+                    Text(
+                        "Añadir ${selectedPresets.size} seleccionados",
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
             Spacer(Modifier.height(24.dp))
         }
         Button(
@@ -749,20 +840,29 @@ private fun PhotoSection(
 @Composable
 private fun QuickFoodsGrid(
     foods: List<com.juan.fittracker.data.FoodPreset>,
-    onPick: (com.juan.fittracker.data.FoodPreset) -> Unit,
+    selected: List<com.juan.fittracker.data.FoodPreset>,
+    onToggle: (com.juan.fittracker.data.FoodPreset) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         foods.chunked(2).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 row.forEach { food ->
-                    AssistChip(
-                        onClick = { onPick(food) },
+                    val isSelected = selected.contains(food)
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { onToggle(food) },
                         label = {
-                            Text("${food.name} · ${food.kcal} kcal", fontSize = 12.sp)
+                            Text(
+                                "${food.name} · ${food.kcal} kcal",
+                                fontSize = 12.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            )
                         },
-                        colors = AssistChipDefaults.assistChipColors(
+                        colors = FilterChipDefaults.filterChipColors(
                             containerColor = Color.White.copy(alpha = 0.05f),
                             labelColor = OnDark,
+                            selectedContainerColor = Accent.copy(alpha = 0.25f),
+                            selectedLabelColor = Accent,
                         ),
                         modifier = Modifier.weight(1f),
                     )
