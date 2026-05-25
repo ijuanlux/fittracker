@@ -22,6 +22,15 @@ enum class Achievement(
     PrimeraFoto("primera_foto", "Foto al plato", "Le hizo foto a una comida", "📸", 10),
     DiezPlatos("diez_platos", "Diez platos distintos", "Variedad culinaria registrada", "🍽️", 30),
     Volumen10t("volumen_10t", "10 toneladas", "Levantó 10.000 kg acumulados", "🏋️‍♂️", 50),
+    LegDay("leg_day", "Día de pierna", "Primera rutina de pierna completada", "🦵", 15),
+    ChestDay("chest_day", "Pecho rolo", "Primera rutina de pecho completada", "💪", 15),
+    BackDay("back_day", "Espalda firme", "Primera rutina de espalda completada", "🏋", 15),
+    ShouldersDay("shoulders_day", "Hombros pa' arriba", "Primera rutina de hombros completada", "🤸", 15),
+    CardioDay("cardio_day", "Cardio rolo", "Primera rutina de cardio completada", "🏃", 15),
+    FullBodyDay("full_body_day", "Full body completo", "Primera rutina full body completada", "🔥", 15),
+    RoutineWarrior("routine_warrior", "Guerrero de rutina", "Misma rutina completada 10 veces", "⚔", 60),
+    VarietyKing("variety_king", "Variado al máx", "4 zonas distintas entrenadas", "🎯", 40),
+    CustomRoutine("custom_routine", "Rutina propia", "Completó una rutina propia (no plantilla)", "✨", 20),
     ;
 
     companion object {

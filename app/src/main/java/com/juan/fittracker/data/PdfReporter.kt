@@ -325,4 +325,240 @@ object PdfReporter {
         canvas.drawText("Generado el $date · Galleta FitTracker", MARGIN, 815f, footer)
         canvas.drawText("🍪", PAGE_W - MARGIN - 16f, 815f, footer)
     }
+
+    // ===== Food report =====
+    suspend fun generateFood(context: Context, stats: FoodStats): Uri =
+        withContext(Dispatchers.IO) {
+            val doc = PdfDocument()
+            val pageInfo = PdfDocument.PageInfo.Builder(PAGE_W, PAGE_H, 1).create()
+            val page = doc.startPage(pageInfo)
+            val canvas = page.canvas
+
+            drawBackground(canvas)
+            drawFoodHeader(canvas, stats)
+            drawFoodStatsGrid(canvas, stats)
+            drawFoodKcalPie(canvas, stats)
+            drawFoodTopList(canvas, stats)
+            drawFooter(canvas)
+
+            doc.finishPage(page)
+
+            val dir = File(
+                context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
+                "reports",
+            ).apply { mkdirs() }
+            val rangeSlug = stats.rangeLabel.replace(Regex("[^a-zA-Z0-9]"), "_")
+            val file = File(dir, "galleto-comida-${rangeSlug}-${System.currentTimeMillis()}.pdf")
+            FileOutputStream(file).use { doc.writeTo(it) }
+            doc.close()
+
+            FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                file,
+            )
+        }
+
+    private fun drawFoodHeader(canvas: Canvas, stats: FoodStats) {
+        val accent = Paint().apply { color = Color.parseColor("#FFC58A") }
+        canvas.drawRect(0f, 0f, 8f, PAGE_H.toFloat(), accent)
+        val yellow = Paint().apply { color = Color.parseColor("#FCD116") }
+        val blue = Paint().apply { color = Color.parseColor("#003893") }
+        val red = Paint().apply { color = Color.parseColor("#CE1126") }
+        canvas.drawRect(8f, 0f, 16f, PAGE_H * 0.5f, yellow)
+        canvas.drawRect(8f, PAGE_H * 0.5f, 16f, PAGE_H * 0.75f, blue)
+        canvas.drawRect(8f, PAGE_H * 0.75f, 16f, PAGE_H.toFloat(), red)
+
+        val title = Paint().apply {
+            isAntiAlias = true
+            color = Color.parseColor("#15100B")
+            textSize = 30f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        }
+        canvas.drawText("Comida informe", MARGIN, 60f, title)
+        val subtitle = Paint().apply {
+            isAntiAlias = true
+            color = Color.parseColor("#8B5A2B")
+            textSize = 14f
+        }
+        canvas.drawText("Galleta FitTracker · ${stats.rangeLabel}", MARGIN, 84f, subtitle)
+        val sep = Paint().apply { color = Color.parseColor("#FFC58A"); strokeWidth = 2f }
+        canvas.drawLine(MARGIN, 100f, PAGE_W - MARGIN, 100f, sep)
+    }
+
+    private fun drawFoodStatsGrid(canvas: Canvas, stats: FoodStats) {
+        val boxes = listOf(
+            "COMIDAS" to stats.totalMeals.toString(),
+            "KCAL TOTAL" to stats.totalKcal.toString(),
+            "DÍAS CON DATO" to stats.daysWithMeals.toString(),
+            "PROM. KCAL/DÍA" to stats.avgPerDay.toInt().toString(),
+        )
+        val cellW = (PAGE_W - 2 * MARGIN - 30f) / 4f
+        val cellH = 70f
+        val startX = MARGIN
+        val startY = 120f
+        boxes.forEachIndexed { i, (label, value) ->
+            val x = startX + i * (cellW + 10f)
+            val y = startY
+            val bg = Paint().apply { color = Color.parseColor("#FAF1E0"); isAntiAlias = true }
+            canvas.drawRoundRect(x, y, x + cellW, y + cellH, 12f, 12f, bg)
+            val border = Paint().apply {
+                color = Color.parseColor("#FFC58A")
+                style = Paint.Style.STROKE
+                strokeWidth = 1.5f
+            }
+            canvas.drawRoundRect(x, y, x + cellW, y + cellH, 12f, 12f, border)
+
+            val labelPaint = Paint().apply {
+                isAntiAlias = true
+                color = Color.parseColor("#8B5A2B")
+                textSize = 9f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+            canvas.drawText(label, x + 10f, y + 20f, labelPaint)
+            val valuePaint = Paint().apply {
+                isAntiAlias = true
+                color = Color.parseColor("#2E1F14")
+                textSize = 22f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+            canvas.drawText(value, x + 10f, y + 52f, valuePaint)
+        }
+    }
+
+    private fun drawFoodKcalPie(canvas: Canvas, stats: FoodStats) {
+        val sectionY = 230f
+        val titlePaint = Paint().apply {
+            isAntiAlias = true
+            color = Color.parseColor("#2E1F14")
+            textSize = 16f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        }
+        canvas.drawText("Quesito de kcal por tipo de comida", MARGIN, sectionY, titlePaint)
+
+        if (stats.kcalByType.isEmpty()) {
+            val noData = Paint().apply {
+                isAntiAlias = true
+                color = Color.parseColor("#8B6F47")
+                textSize = 12f
+            }
+            canvas.drawText("Sin comidas en este rango", MARGIN, sectionY + 24f, noData)
+            return
+        }
+        val cx = MARGIN + 95f
+        val cy = sectionY + 115f
+        val r = 80f
+        val total = stats.kcalByType.sumOf { it.second }.toFloat()
+        val rect = RectF(cx - r, cy - r, cx + r, cy + r)
+        var start = -90f
+        stats.kcalByType.forEachIndexed { i, (_, count) ->
+            val sweep = (count / total) * 360f
+            val paint = Paint().apply {
+                isAntiAlias = true
+                color = Color.parseColor(palette[i % palette.size])
+                style = Paint.Style.FILL
+            }
+            canvas.drawArc(rect, start, sweep, true, paint)
+            val sep = Paint().apply {
+                isAntiAlias = true
+                color = Color.parseColor("#FFF8E7")
+                style = Paint.Style.STROKE
+                strokeWidth = 3f
+            }
+            canvas.drawArc(rect, start, sweep, true, sep)
+            start += sweep
+        }
+        val innerR = r * 0.42f
+        val inner = Paint().apply {
+            isAntiAlias = true
+            color = Color.parseColor("#FFF8E7")
+            style = Paint.Style.FILL
+        }
+        canvas.drawCircle(cx, cy, innerR, inner)
+        val totalPaint = Paint().apply {
+            isAntiAlias = true
+            color = Color.parseColor("#2E1F14")
+            textSize = 18f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            textAlign = Paint.Align.CENTER
+        }
+        canvas.drawText("${total.toInt()}", cx, cy + 2f, totalPaint)
+        val sublabel = Paint().apply {
+            isAntiAlias = true
+            color = Color.parseColor("#8B6F47")
+            textSize = 9f
+            textAlign = Paint.Align.CENTER
+        }
+        canvas.drawText("kcal", cx, cy + 16f, sublabel)
+
+        val legendX = cx + r + 30f
+        var legendY = cy - r + 12f
+        stats.kcalByType.forEach { (label, value) ->
+            val i = stats.kcalByType.indexOfFirst { it.first == label }
+            val swatch = Paint().apply { color = Color.parseColor(palette[i % palette.size]); isAntiAlias = true }
+            canvas.drawRoundRect(legendX, legendY - 9f, legendX + 14f, legendY + 3f, 3f, 3f, swatch)
+            val txt = Paint().apply {
+                isAntiAlias = true
+                color = Color.parseColor("#2E1F14")
+                textSize = 12f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+            canvas.drawText(label, legendX + 20f, legendY, txt)
+            val small = Paint().apply {
+                isAntiAlias = true
+                color = Color.parseColor("#8B6F47")
+                textSize = 11f
+            }
+            val pct = ((value / total) * 100f).toInt()
+            canvas.drawText("$value kcal · $pct%", legendX + 20f, legendY + 14f, small)
+            legendY += 32f
+        }
+    }
+
+    private fun drawFoodTopList(canvas: Canvas, stats: FoodStats) {
+        val sectionY = 510f
+        val titlePaint = Paint().apply {
+            isAntiAlias = true
+            color = Color.parseColor("#2E1F14")
+            textSize = 16f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        }
+        canvas.drawText("Top alimentos", MARGIN, sectionY, titlePaint)
+        if (stats.topFoods.isEmpty()) {
+            val noData = Paint().apply {
+                isAntiAlias = true
+                color = Color.parseColor("#8B6F47")
+                textSize = 12f
+            }
+            canvas.drawText("Sin datos", MARGIN, sectionY + 24f, noData)
+            return
+        }
+        val max = stats.topFoods.maxOf { it.second }.toFloat()
+        val barAreaW = PAGE_W - 2 * MARGIN
+        val barH = 20f
+        val gap = 12f
+        var y = sectionY + 20f
+        stats.topFoods.forEach { (name, count) ->
+            val labelPaint = Paint().apply {
+                isAntiAlias = true
+                color = Color.parseColor("#2E1F14")
+                textSize = 12f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+            canvas.drawText(name, MARGIN, y, labelPaint)
+            val countPaint = Paint().apply {
+                isAntiAlias = true
+                color = Color.parseColor("#8B5A2B")
+                textSize = 11f
+            }
+            canvas.drawText("× $count veces", PAGE_W - MARGIN - 70f, y, countPaint)
+            y += 5f
+            val track = Paint().apply { color = Color.parseColor("#EAD6B0"); isAntiAlias = true }
+            canvas.drawRoundRect(MARGIN, y, MARGIN + barAreaW, y + barH, 10f, 10f, track)
+            val fillW = (count / max) * barAreaW
+            val fill = Paint().apply { color = Color.parseColor("#FFC58A"); isAntiAlias = true }
+            canvas.drawRoundRect(MARGIN, y, MARGIN + fillW, y + barH, 10f, 10f, fill)
+            y += barH + gap + 10f
+        }
+    }
 }

@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -76,6 +77,7 @@ import com.juan.fittracker.data.ExerciseSet
 import com.juan.fittracker.data.Levels
 import com.juan.fittracker.data.RolaPhrases
 import com.juan.fittracker.data.Sex
+import com.juan.fittracker.data.ShareHelper
 import com.juan.fittracker.data.SoundFx
 import com.juan.fittracker.data.UserProfile
 import com.juan.fittracker.data.Workout
@@ -468,6 +470,10 @@ private fun WorkoutCard(item: WorkoutWithSets, onDelete: () -> Unit) {
                         color = OnDark.copy(alpha = 0.65f),
                         fontSize = 13.sp,
                     )
+                }
+                val ctx = LocalContext.current
+                IconButton(onClick = { ShareHelper.shareWorkout(ctx, item) }) {
+                    Icon(Icons.Filled.Share, contentDescription = "Compartir", tint = Accent)
                 }
                 IconButton(onClick = onDelete) {
                     Icon(Icons.Filled.Delete, contentDescription = "Borrar", tint = Danger.copy(alpha = 0.85f))

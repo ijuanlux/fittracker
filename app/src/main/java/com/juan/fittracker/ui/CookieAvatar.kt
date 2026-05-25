@@ -324,22 +324,23 @@ private fun DrawScope.drawFace(mood: CookieMood, center: Offset, r: Float, mouth
                 strokeWidth = r * 0.05f, cap = StrokeCap.Round)
         }
         CookieMood.Tired, CookieMood.Stuffed -> {
-            // Heavy droopy lids: horizontal line slightly curved DOWN at the ends
+            // Heavy droopy lids — drawn near the proper eye level
+            val absLeft = center.y + eyeY - r * 0.05f
             drawArc(
                 color = Color.Black,
                 startAngle = 0f, sweepAngle = 180f, useCenter = false,
-                topLeft = Offset(center.x - r * 0.32f, eyeY - r * 0.04f),
+                topLeft = Offset(center.x - r * 0.32f, absLeft),
                 size = Size(r * 0.20f, r * 0.10f),
                 style = Stroke(width = r * 0.05f, cap = StrokeCap.Round),
             )
             drawArc(
                 color = Color.Black,
                 startAngle = 0f, sweepAngle = 180f, useCenter = false,
-                topLeft = Offset(center.x + r * 0.12f, eyeY - r * 0.04f),
+                topLeft = Offset(center.x + r * 0.12f, absLeft),
                 size = Size(r * 0.20f, r * 0.10f),
                 style = Stroke(width = r * 0.05f, cap = StrokeCap.Round),
             )
-            // Tiny droplet/sweat for Tired (no for Stuffed - cheeks tell the story)
+            // Small sweat drop for Tired only (Stuffed shows cheeks instead)
             if (mood == CookieMood.Tired) {
                 drawCircle(
                     color = Color(0xFF8AB4F8).copy(alpha = 0.7f),
@@ -383,11 +384,11 @@ private fun DrawScope.drawFace(mood: CookieMood, center: Offset, r: Float, mouth
                     strokeWidth = r * 0.05f, cap = StrokeCap.Round)
             }
             CookieMood.Stuffed -> {
-                // Small contented smile
+                // Small contented smile, anchored to absolute mouth Y
                 drawArc(
                     color = Color.Black,
                     startAngle = 0f, sweepAngle = 180f, useCenter = false,
-                    topLeft = Offset(center.x - r * 0.10f, mouthY + r * 0.02f),
+                    topLeft = Offset(center.x - r * 0.10f, center.y + mouthY + r * 0.02f),
                     size = Size(r * 0.20f, r * 0.10f),
                     style = Stroke(width = r * 0.05f, cap = StrokeCap.Round),
                 )

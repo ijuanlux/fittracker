@@ -125,6 +125,7 @@ private val Danger: Color
 private sealed class Mode {
     data object List : Mode()
     data object Adding : Mode()
+    data object Stats : Mode()
 }
 
 @Composable
@@ -142,6 +143,7 @@ fun FoodScreen(profile: UserProfile) {
                     bannerComment = lastComment,
                     onAdd = { mode = Mode.Adding },
                     onCommentShown = { lastComment = null },
+                    onOpenStats = { mode = Mode.Stats },
                 )
                 Mode.Adding -> AddMealForm(
                     profile = profile,
@@ -152,6 +154,10 @@ fun FoodScreen(profile: UserProfile) {
                         lastComment = comment
                         mode = Mode.List
                     },
+                )
+                Mode.Stats -> com.juan.fittracker.ui.food.FoodStatsScreen(
+                    profile = profile,
+                    onBack = { mode = Mode.List },
                 )
             }
         }
@@ -165,6 +171,7 @@ private fun FoodList(
     bannerComment: String?,
     onAdd: () -> Unit,
     onCommentShown: () -> Unit,
+    onOpenStats: () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -217,13 +224,23 @@ private fun FoodList(
             modifier = Modifier.fillMaxSize(),
         ) {
             item {
-                Text("Comida", color = Accent, fontSize = 28.sp, fontWeight = FontWeight.Black)
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "Lleva la cuenta de lo que has comido hoy",
-                    color = OnDark.copy(alpha = 0.65f),
-                    fontSize = 13.sp,
-                )
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Comida", color = Accent, fontSize = 28.sp, fontWeight = FontWeight.Black)
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "Lleva la cuenta de lo que has comido hoy",
+                            color = OnDark.copy(alpha = 0.65f),
+                            fontSize = 13.sp,
+                        )
+                    }
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = onOpenStats,
+                        shape = RoundedCornerShape(20.dp),
+                    ) {
+                        Text("🍪  Informe", color = Accent, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    }
+                }
                 Spacer(Modifier.height(16.dp))
             }
             item {

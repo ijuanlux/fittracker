@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -69,6 +70,7 @@ import com.juan.fittracker.data.Notifier
 import com.juan.fittracker.data.Nutrition
 import com.juan.fittracker.data.ReminderScheduler
 import com.juan.fittracker.data.ReminderSettings
+import com.juan.fittracker.data.ShareHelper
 import com.juan.fittracker.data.UserPrefs
 import com.juan.fittracker.data.Sex
 import com.juan.fittracker.data.TodayHealthStats
@@ -317,6 +319,8 @@ private fun HomeScreen(profile: UserProfile) {
             line1 = "${profile.frequency.label} · ${profile.frequency.days}",
             line2 = "${profile.heightCm} cm · ${profile.weightKg} kg",
         )
+        Spacer(Modifier.height(16.dp))
+        ShareAppCard()
         Spacer(Modifier.height(24.dp))
     }
 }
@@ -574,6 +578,43 @@ private fun ProfileRow(label: String, value: String) {
     ) {
         Text(label, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f), fontSize = 15.sp)
         Text(value, color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+    }
+}
+
+@Composable
+private fun ShareAppCard() {
+    val context = LocalContext.current
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { ShareHelper.shareApp(context) },
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+        ),
+    ) {
+        Row(
+            modifier = Modifier.padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("🍪", fontSize = 36.sp)
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "Comparte Galleta FitTracker",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Black,
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    "Mándale a un parce que tenga que moverse",
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    fontSize = 12.sp,
+                )
+            }
+            Text("→", color = MaterialTheme.colorScheme.primary, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        }
     }
 }
 
