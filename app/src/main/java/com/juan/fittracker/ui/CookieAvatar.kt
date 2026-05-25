@@ -324,20 +324,29 @@ private fun DrawScope.drawFace(mood: CookieMood, center: Offset, r: Float, mouth
                 strokeWidth = r * 0.05f, cap = StrokeCap.Round)
         }
         CookieMood.Tired, CookieMood.Stuffed -> {
+            // Heavy droopy lids: horizontal line slightly curved DOWN at the ends
             drawArc(
                 color = Color.Black,
-                startAngle = 180f, sweepAngle = 180f, useCenter = false,
-                topLeft = Offset(center.x - r * 0.32f, eyeY - r * 0.05f),
+                startAngle = 0f, sweepAngle = 180f, useCenter = false,
+                topLeft = Offset(center.x - r * 0.32f, eyeY - r * 0.04f),
                 size = Size(r * 0.20f, r * 0.10f),
                 style = Stroke(width = r * 0.05f, cap = StrokeCap.Round),
             )
             drawArc(
                 color = Color.Black,
-                startAngle = 180f, sweepAngle = 180f, useCenter = false,
-                topLeft = Offset(center.x + r * 0.12f, eyeY - r * 0.05f),
+                startAngle = 0f, sweepAngle = 180f, useCenter = false,
+                topLeft = Offset(center.x + r * 0.12f, eyeY - r * 0.04f),
                 size = Size(r * 0.20f, r * 0.10f),
                 style = Stroke(width = r * 0.05f, cap = StrokeCap.Round),
             )
+            // Tiny droplet/sweat for Tired (no for Stuffed - cheeks tell the story)
+            if (mood == CookieMood.Tired) {
+                drawCircle(
+                    color = Color(0xFF8AB4F8).copy(alpha = 0.7f),
+                    radius = r * 0.04f,
+                    center = center + Offset(r * 0.40f, eyeY + r * 0.10f),
+                )
+            }
         }
         CookieMood.Lazy -> {
             drawCircle(Color.Black, radius = r * 0.05f, center = center + Offset(-r * 0.18f, eyeY))
