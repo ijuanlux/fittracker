@@ -913,6 +913,100 @@ object RolaPhrases {
         "A ver qué le mandó al cuerpo hoy, marica.",
     )
 
+    // ============ WORKOUT VIBE ============
+
+    val workoutEmpty = listOf(
+        "Hoy ni un entrenito, mijitic{A}. Pa' ayer es tarde.",
+        "Cero pesas hoy, marica. ¿Qué pasó?",
+        "Galletoide no tolera más excusas, {BRO}.",
+        "Hoy no se le movió ni el cinturón. Mañana toca pagar.",
+        "Sin entreno hoy. ¿Pa' qué se compró la ropita?",
+        "Mi vid{A}, ¿el gym no le quedaba cerca o qué?",
+        "Cero series. Cero. ¿En serio, marica?",
+        "¿Hoy lo cogió la pereza otra vez, {BRO}?",
+        "Quiet{A} como TransMi sin batería, qué oso.",
+        "Galletoide está esperando y nada que llega.",
+        "Hoy ni siquiera un septimazo, {BRO}. Mal.",
+        "Sin movimiento, sin progreso, marica.",
+        "Mañana sin pretextos, dele.",
+        "Le falló al cuerpo hoy, mijitic{A}.",
+        "Pereza nivel domingo de paro. No me joda.",
+        "El sofá ganó hoy. Mañana revancha.",
+        "¿Cero pesas? Galletoide cachetona te juzga.",
+        "Hoy ni un squat, marica. Qué jartera.",
+        "Ud y la pereza, otra vez juntit{A}s.",
+        "Sin pesas hoy. Pan Yiyo abierto, gym cerrado.",
+    )
+
+    val workoutLazy = listOf(
+        "Eso fue calentamiento, marica, no entreno.",
+        "Pocas seriecitas. Mañana suba el nivel, {BRO}.",
+        "Ud entró al gym y salió igual, ¿no?",
+        "Eso fue saludo y vámonos. Suba la intensidad.",
+        "Hizo lo mínimo, mijitic{A}. Sin entusiasmo.",
+        "Una serie no es entreno, {BRO}.",
+        "Eso fue presentar tarjeta y devolverse.",
+        "Le faltó garra hoy, marica.",
+        "Más entreno hace el cobrador del SITP, jaja.",
+        "Entrenó como si tuviera afán por irse a Pan Yiyo.",
+        "Cuatro repes y se fue, qué oso.",
+        "Hoy faltó berraquera, {BRO}.",
+        "Eso ni le bajó la aguapanela del desayuno.",
+        "Le dio miedo el peso, mijitic{A}, ¿o qué?",
+        "Mañana sin excusas, dele al doble.",
+    )
+
+    val workoutRegular = listOf(
+        "Día parejito, {BRO}. Sin pasarse pero ahí va.",
+        "Cumplió. No récord pero buen día.",
+        "Eso fue lo justo. Mañana un poquito más.",
+        "Buen entreno honesto, {BRO}.",
+        "Suma día limpio, sin gloria pero sin desastre.",
+        "Vamos manejado, como TransMi en valle.",
+        "Sin alardes pero hizo el trabajo.",
+        "Día sólido sin más, mijitic{A}.",
+        "Cumplió la cuota mínima, {BRO}. Vale.",
+        "Esto suma. Mañana le subimos un toque.",
+        "Vamos al ritmo del rolo promedio, ok.",
+        "Día digno de tinto de panadería: correcto.",
+    )
+
+    val workoutStrong = listOf(
+        "¡Eso, {BRO}! Tremenda sesión.",
+        "Le metió caña hoy, mijitic{A}.",
+        "Galletoide aprueba con sello dorado.",
+        "Sigue así y subimos Monserrate sin cable.",
+        "Pasada de buena, {BRO}. Bien hecho.",
+        "Hoy se ganó la cerveza fría… o el batido, según.",
+        "Tremenda voluntad la suya, marica.",
+        "Hoy le dolió al músculo, qué nota.",
+        "Eso sí fue gym, no juego de niños.",
+        "Bien metid{A}, {BRO}. Sigue por ese camino.",
+        "Volumen serio, esfuerzo serio. Top.",
+        "Galletoide está orgullosa hoy.",
+        "Sesión nivel rolo serio, no rolo de cantina.",
+        "Le dio durito y se ve, mijitic{A}.",
+        "Hoy mañana le sale six pack, ya verá.",
+    )
+
+    val workoutBeast = listOf(
+        "¡Hijuepucha! Bestialidad de sesión, marica.",
+        "Hoy le dio durísimo. Como rolo en lunes recargad{A}.",
+        "Galletoide nivel Hulk hoy.",
+        "Récord personal o algo cercano, {BRO}.",
+        "¡Tremendo! Si sigue así, le pagan por entrenar.",
+        "Eso fue volumen nivel mudanza, {BRO}.",
+        "Subió hasta el Cerro de Suba con pesas hoy.",
+        "¡Brutal, mijitic{A}! Hasta yo sudé viéndolo.",
+        "Hoy le ganó al gym, marica.",
+        "Esa sesión la suben a YouTube, jajaja.",
+        "Cuerpo de Andrés Carne de Res, qué máquina.",
+        "Si Bogotá entrenara así, llegaríamos al Mundial.",
+        "Le dio bola al hierro, {BRO}, qué berraquera.",
+        "Tremenda entrega. Mañana descanse en serio.",
+        "Galletoide se quita el sombrero. Bestial.",
+    )
+
     // ============ PICKER ============
 
     fun pick(

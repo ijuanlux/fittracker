@@ -132,6 +132,7 @@ fun FoodScreen(profile: UserProfile) {
     var mode by remember { mutableStateOf<Mode>(Mode.List) }
     var lastComment by remember { mutableStateOf<String?>(null) }
     var showConfetti by remember { mutableStateOf(false) }
+    androidx.activity.compose.BackHandler(enabled = mode is Mode.Adding) { mode = Mode.List }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Crossfade(targetState = mode, animationSpec = tween(300), label = "food-mode") { current ->
@@ -226,9 +227,6 @@ private fun FoodList(
                 Spacer(Modifier.height(16.dp))
             }
             item {
-                TodayKcalCard(todayKcal = todayKcal)
-            }
-            item {
                 GalletoideMealCard(
                     quote = ambient,
                     mood = cookieMood,
@@ -236,6 +234,9 @@ private fun FoodList(
                     speaking = speaking,
                     onTap = { ambientKey++ },
                 )
+            }
+            item {
+                TodayKcalCard(todayKcal = todayKcal)
             }
             item {
                 AnimatedVisibility(visible = bannerComment != null) {

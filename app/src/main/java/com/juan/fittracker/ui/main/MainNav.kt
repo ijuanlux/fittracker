@@ -127,7 +127,7 @@ fun MainNav(profile: UserProfile, onResetProfile: () -> Unit) {
         Box(modifier = Modifier.padding(padding)) {
             when (tab) {
                 Tab.Home -> HomeScreen(profile)
-                Tab.Workouts -> WorkoutsScreen()
+                Tab.Workouts -> WorkoutsScreen(profile)
                 Tab.Food -> FoodScreen(profile)
                 Tab.Nearby -> NearbyScreen(profile)
                 Tab.Profile -> ProfileScreen(profile, onResetProfile)

@@ -118,11 +118,37 @@ fun CookieAvatar(
         ),
         label = "cape",
     )
+    // Blink: most of the time eyes are open (0); periodically blinks closed (1)
+    val blink by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = androidx.compose.animation.core.keyframes {
+                durationMillis = 4200
+                0f at 0
+                0f at 3800
+                1f at 3960
+                0f at 4120
+            },
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "blink",
+    )
+    // Subtle sway side to side, like breathing weight shift
+    val sway by transition.animateFloat(
+        initialValue = -1f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 2400, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "sway",
+    )
 
     val stuffScale = if (mood == CookieMood.Stuffed) 1.07f else 1f
 
     Canvas(modifier = modifier.scale(bounce * stuffScale)) {
-        drawCookieAthlete(curl, mood, resting, mouthAnim, accessory, level, auraPulse, capeWave)
+        drawCookieAthlete(curl, mood, resting, mouthAnim, accessory, level, auraPulse, capeWave, blink, sway)
     }
 }
 
@@ -135,8 +161,11 @@ private fun DrawScope.drawCookieAthlete(
     level: Int,
     auraPulse: Float,
     capeWave: Float,
+    blink: Float = 0f,
+    sway: Float = 0f,
 ) {
-    val center = Offset(size.width / 2f, size.height / 2f)
+    val swayOffset = sway * size.minDimension * 0.005f
+    val center = Offset(size.width / 2f + swayOffset, size.height / 2f)
     val r = size.minDimension * 0.28f
 
     // Aura (lv 9+) - behind everything
@@ -184,18 +213,32 @@ private fun DrawScope.drawCookieAthlete(
     )
 
     val chips = listOf(
-        Triple(-0.42f, -0.42f, 0.085f),
-        Triple(0.40f, -0.34f, 0.075f),
-        Triple(-0.18f, -0.55f, 0.06f),
-        Triple(-0.50f, -0.18f, 0.07f),
-        Triple(0.48f, -0.10f, 0.075f),
-        Triple(0.12f, -0.62f, 0.055f),
+        Triple(-0.55f, -0.45f, 0.075f),
+        Triple(0.50f, -0.50f, 0.07f),
+        Triple(-0.30f, -0.62f, 0.06f),
+        Triple(0.25f, -0.65f, 0.055f),
+        Triple(-0.10f, -0.70f, 0.05f),
+        Triple(0.10f, -0.55f, 0.045f),
+        Triple(-0.45f, -0.62f, 0.045f),
+        Triple(0.45f, -0.40f, 0.055f),
+        Triple(-0.60f, -0.30f, 0.045f),
+        Triple(0.60f, -0.32f, 0.05f),
+        Triple(0.0f, -0.48f, 0.045f),
+        Triple(-0.20f, -0.55f, 0.045f),
+        Triple(-0.35f, -0.40f, 0.04f),
+        Triple(0.35f, -0.55f, 0.04f),
     )
+    val chipHighlight = Color(0xFF6B3D26).copy(alpha = 0.55f)
     chips.forEach { (x, y, rad) ->
+        val cx = center.x + x * r
+        val cy = center.y + y * r
+        val chipR = r * rad
+        drawCircle(color = ChipDark, radius = chipR, center = Offset(cx, cy))
+        // Subtle highlight for chocolate shine
         drawCircle(
-            color = ChipDark,
-            radius = r * rad,
-            center = center + Offset(x * r, y * r),
+            color = chipHighlight,
+            radius = chipR * 0.45f,
+            center = Offset(cx - chipR * 0.35f, cy - chipR * 0.35f),
         )
     }
 
@@ -213,7 +256,7 @@ private fun DrawScope.drawCookieAthlete(
         drawCircle(color = Blush.copy(alpha = 0.55f), radius = cheekR * 0.55f, center = center + Offset(cheekX, cheekY))
     }
 
-    drawFace(mood, center, r, mouthAnim, level)
+    drawFace(mood, center, r, mouthAnim, level, blink)
     if (level >= 3) drawSunglasses(center, r)
     if (level >= 5) drawChain(center, r)
     when {
@@ -262,10 +305,17 @@ private fun DrawScope.drawCookieAthlete(
     }
 }
 
-private fun DrawScope.drawFace(mood: CookieMood, center: Offset, r: Float, mouthAnim: Float, level: Int = 1) {
+private fun DrawScope.drawFace(mood: CookieMood, center: Offset, r: Float, mouthAnim: Float, level: Int = 1, blink: Float = 0f) {
     val eyeY = -r * 0.25f
+    val isBlinking = blink > 0.5f && mood != CookieMood.Sleepy
     if (level >= 3) {
-        // Eyes will be covered by sunglasses; skip drawing them
+        // Eyes covered by sunglasses; skip drawing
+    } else if (isBlinking) {
+        // Drawn as closed eye lines for the brief blink frame
+        drawLine(Color.Black, center + Offset(-r * 0.28f, eyeY), center + Offset(-r * 0.14f, eyeY),
+            strokeWidth = r * 0.05f, cap = StrokeCap.Round)
+        drawLine(Color.Black, center + Offset(r * 0.14f, eyeY), center + Offset(r * 0.28f, eyeY),
+            strokeWidth = r * 0.05f, cap = StrokeCap.Round)
     } else when (mood) {
         CookieMood.Sleepy -> {
             drawLine(Color.Black, center + Offset(-r * 0.32f, eyeY), center + Offset(-r * 0.12f, eyeY),

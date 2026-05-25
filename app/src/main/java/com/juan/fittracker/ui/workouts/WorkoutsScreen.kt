@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -69,15 +70,29 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.juan.fittracker.data.CookieMood
 import com.juan.fittracker.data.Db
 import com.juan.fittracker.data.ExerciseSet
+import com.juan.fittracker.data.Levels
+import com.juan.fittracker.data.RolaPhrases
+import com.juan.fittracker.data.Sex
 import com.juan.fittracker.data.SoundFx
+import com.juan.fittracker.data.UserProfile
 import com.juan.fittracker.data.Workout
+import com.juan.fittracker.data.WorkoutClassifier
+import com.juan.fittracker.data.WorkoutVibe
 import com.juan.fittracker.data.WorkoutWithSets
 import com.juan.fittracker.data.formatLongDate
 import com.juan.fittracker.data.formatShortDate
+import com.juan.fittracker.ui.CookieAvatar
 import com.juan.fittracker.ui.effects.ConfettiOverlay
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.mutableIntStateOf
 
 private val Accent: Color
     @androidx.compose.runtime.Composable get() = androidx.compose.material3.MaterialTheme.colorScheme.primary
@@ -94,13 +109,14 @@ private sealed class Mode {
 }
 
 @Composable
-fun WorkoutsScreen() {
+fun WorkoutsScreen(profile: UserProfile) {
     var mode by remember { mutableStateOf<Mode>(Mode.List) }
     var showConfetti by remember { mutableStateOf(false) }
+    BackHandler(enabled = mode is Mode.Adding) { mode = Mode.List }
     Box(modifier = Modifier.fillMaxSize()) {
         Crossfade(targetState = mode, animationSpec = tween(300), label = "workouts-mode") { current ->
             when (current) {
-                Mode.List -> WorkoutsList(onAdd = { mode = Mode.Adding })
+                Mode.List -> WorkoutsList(profile = profile, onAdd = { mode = Mode.Adding })
                 Mode.Adding -> AddWorkoutForm(
                     onCancel = { mode = Mode.List },
                     onSaved = {
@@ -116,16 +132,74 @@ fun WorkoutsScreen() {
 }
 
 @Composable
-private fun WorkoutsList(onAdd: () -> Unit) {
+private fun WorkoutsList(profile: UserProfile, onAdd: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val dao = remember(context) { Db.get(context).workoutDao() }
+    val achievementDao = remember(context) { Db.get(context).achievementDao() }
     val workouts by dao.observeAll().collectAsState(initial = emptyList())
+    val unlocks by achievementDao.observeAll().collectAsState(initial = emptyList())
+    val galletoideLevel = Levels.level(Levels.totalXp(unlocks))
     var pendingDelete by remember { mutableStateOf<WorkoutWithSets?>(null) }
+
+    val todayWorkouts = workouts.filter { isTodayWorkout(it.workout.dateEpochMs) }
+    val vibe = WorkoutClassifier.classify(todayWorkouts)
+    val mood = when (vibe) {
+        WorkoutVibe.Empty -> CookieMood.Lazy
+        WorkoutVibe.Lazy -> CookieMood.Tired
+        WorkoutVibe.Regular -> CookieMood.Neutral
+        WorkoutVibe.Strong -> CookieMood.Happy
+        WorkoutVibe.Beast -> CookieMood.Energetic
+    }
+    var quoteKey by remember { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(45_000)
+            quoteKey++
+        }
+    }
+    val quote = remember(quoteKey, profile.sex, vibe) {
+        RolaPhrases.pick(WorkoutClassifier.poolFor(vibe), quoteKey, profile.sex)
+    }
+    var speaking by remember { mutableStateOf(true) }
+    LaunchedEffect(quote) {
+        speaking = true
+        delay(2200)
+        speaking = false
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (workouts.isEmpty()) {
-            EmptyState(onAdd = onAdd, modifier = Modifier.align(Alignment.Center))
+            LazyColumn(
+                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 100.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                item {
+                    Text(
+                        text = "Mis Entrenos",
+                        color = Accent,
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Black,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "Aún no hay sesiones registradas",
+                        color = OnDark.copy(alpha = 0.65f),
+                        fontSize = 14.sp,
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    GalletoideWorkoutCard(
+                        quote = quote,
+                        mood = mood,
+                        level = galletoideLevel,
+                        speaking = speaking,
+                        onTap = { quoteKey++ },
+                    )
+                    Spacer(Modifier.height(24.dp))
+                    EmptyState(onAdd = onAdd)
+                }
+            }
         } else {
             LazyColumn(
                 state = rememberLazyListState(),
@@ -145,6 +219,14 @@ private fun WorkoutsList(onAdd: () -> Unit) {
                         text = "${workouts.size} sesiones registradas",
                         color = OnDark.copy(alpha = 0.65f),
                         fontSize = 14.sp,
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    GalletoideWorkoutCard(
+                        quote = quote,
+                        mood = mood,
+                        level = galletoideLevel,
+                        speaking = speaking,
+                        onTap = { quoteKey++ },
                     )
                     Spacer(Modifier.height(16.dp))
                 }
@@ -195,6 +277,48 @@ private fun WorkoutsList(onAdd: () -> Unit) {
             },
             containerColor = Color(0xFF2A1F18),
         )
+    }
+}
+
+private fun isTodayWorkout(epochMs: Long): Boolean {
+    val date = Instant.ofEpochMilli(epochMs).atZone(ZoneId.systemDefault()).toLocalDate()
+    return date == LocalDate.now()
+}
+
+@Composable
+private fun GalletoideWorkoutCard(
+    quote: String,
+    mood: CookieMood,
+    level: Int,
+    speaking: Boolean,
+    onTap: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onTap() },
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Accent.copy(alpha = 0.12f)),
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            CookieAvatar(
+                modifier = Modifier.size(96.dp),
+                mood = mood,
+                isSpeaking = speaking,
+                level = level,
+            )
+            Spacer(Modifier.size(12.dp))
+            Text(
+                text = quote,
+                color = OnDark,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f),
+            )
+        }
     }
 }
 

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Shadow under cookie -->
+    <path
+        android:fillColor="#33000000"
+        android:pathData="M54,58 m -27,0 a 27,27 0 1,0 54,0 a 27,27 0 1,0 -54,0 Z" />
+
+    <!-- Cookie body -->
+    <path
+        android:fillColor="#D9A86C"
+        android:pathData="M54,54 m -27,0 a 27,27 0 1,0 54,0 a 27,27 0 1,0 -54,0 Z" />
+
+    <!-- Inner ring outline -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#B8814A"
+        android:strokeWidth="1.5"
+        android:pathData="M54,54 m -24,0 a 24,24 0 1,0 48,0 a 24,24 0 1,0 -48,0 Z" />
+
+    <!-- Chocolate chips (upper area) -->
+    <path
+        android:fillColor="#3D2418"
+        android:pathData="M40,38 m -3,0 a 3,3 0 1,0 6,0 a 3,3 0 1,0 -6,0 Z" />
+    <path
+        android:fillColor="#3D2418"
+        android:pathData="M65,40 m -2.5,0 a 2.5,2.5 0 1,0 5,0 a 2.5,2.5 0 1,0 -5,0 Z" />
+    <path
+        android:fillColor="#3D2418"
+        android:pathData="M51,32 m -2.5,0 a 2.5,2.5 0 1,0 5,0 a 2.5,2.5 0 1,0 -5,0 Z" />
+    <path
+        android:fillColor="#3D2418"
+        android:pathData="M34,48 m -2.5,0 a 2.5,2.5 0 1,0 5,0 a 2.5,2.5 0 1,0 -5,0 Z" />
+    <path
+        android:fillColor="#3D2418"
+        android:pathData="M73,48 m -2.5,0 a 2.5,2.5 0 1,0 5,0 a 2.5,2.5 0 1,0 -5,0 Z" />
+
+    <!-- Colombian flag mini-stripe at the bottom -->
+    <path
+        android:fillColor="#FCD116"
+        android:pathData="M37,63 L71,63 L71,68 L37,68 Z" />
+    <path
+        android:fillColor="#003893"
+        android:pathData="M37,68 L71,68 L71,71 L37,71 Z" />
+    <path
+        android:fillColor="#CE1126"
+        android:pathData="M37,71 L71,71 L71,74 L37,74 Z" />
+
+    <!-- Eyes -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M46,54 m -2.2,0 a 2.2,2.2 0 1,0 4.4,0 a 2.2,2.2 0 1,0 -4.4,0 Z" />
+    <path
+        android:fillColor="#000000"
+        android:pathData="M62,54 m -2.2,0 a 2.2,2.2 0 1,0 4.4,0 a 2.2,2.2 0 1,0 -4.4,0 Z" />
+
+    <!-- Smile (V shape) -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#000000"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M48,60 L54,63 L60,60" />
+</vector>
