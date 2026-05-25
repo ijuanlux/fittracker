@@ -216,25 +216,33 @@ fun LiveSessionScreen(
 
     fun finishAndSave() {
         if (saved) return
+        if (completed.isEmpty()) return
         saved = true
         scope.launch {
+            val incomplete = completed.size < exerciseList.size
             val workout = Workout(
                 dateEpochMs = System.currentTimeMillis(),
-                notes = "Rutina ${routine.routine.name}",
+                notes = if (incomplete) "Rutina ${routine.routine.name} (incompleta)"
+                else "Rutina ${routine.routine.name}",
             )
-            val sets: List<ExerciseSet> = exerciseList.flatMapIndexed { exIdx, ex ->
-                val reps = parseReps(ex.repsText)
-                (0 until ex.sets).map { setIdx ->
-                    ExerciseSet(
-                        workoutId = 0L,
-                        exerciseName = ex.exerciseName,
-                        exerciseIndex = exIdx,
-                        setIndex = setIdx,
-                        reps = reps,
-                        weightKg = 0f,
-                    )
+            val sets: List<ExerciseSet> = exerciseList
+                .mapIndexedNotNull { exIdx, ex ->
+                    if (!completed.contains(exIdx)) return@mapIndexedNotNull null
+                    exIdx to ex
                 }
-            }
+                .flatMap { (exIdx, ex) ->
+                    val reps = parseReps(ex.repsText)
+                    (0 until ex.sets).map { setIdx ->
+                        ExerciseSet(
+                            workoutId = 0L,
+                            exerciseName = ex.exerciseName,
+                            exerciseIndex = exIdx,
+                            setIndex = setIdx,
+                            reps = reps,
+                            weightKg = 0f,
+                        )
+                    }
+                }
             dao.saveWorkout(workout, sets)
             SoundFx.playAchievement()
             delay(400)
@@ -362,31 +370,63 @@ fun LiveSessionScreen(
                 }
             }
 
-            Button(
-                onClick = {
-                    showConfetti = true
-                    finishAndSave()
-                },
-                enabled = allDone && !saved,
+            val partial = completed.isNotEmpty() && !allDone
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp)
-                    .height(56.dp),
-                shape = RoundedCornerShape(28.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.background,
-                    disabledContainerColor = Color.White.copy(alpha = 0.08f),
-                    disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                ),
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Icon(Icons.Filled.Check, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    if (allDone) "¡Cerrar sesión y guardar!" else "Marca todos los ejercicios",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                )
+                if (partial) {
+                    Button(
+                        onClick = {
+                            showConfetti = true
+                            finishAndSave()
+                        },
+                        enabled = !saved,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(25.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White.copy(alpha = 0.10f),
+                            contentColor = MaterialTheme.colorScheme.primary,
+                        ),
+                    ) {
+                        Icon(Icons.Filled.Check, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            "Guardar incompleto (${completed.size}/${exerciseList.size})",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
+                Button(
+                    onClick = {
+                        showConfetti = true
+                        finishAndSave()
+                    },
+                    enabled = allDone && !saved,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.background,
+                        disabledContainerColor = Color.White.copy(alpha = 0.08f),
+                        disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                    ),
+                ) {
+                    Icon(Icons.Filled.Check, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        if (allDone) "¡Cerrar sesión y guardar!" else "Marca todos los ejercicios",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
             }
         }
         ConfettiOverlay(active = showConfetti, onFinish = { showConfetti = false })
