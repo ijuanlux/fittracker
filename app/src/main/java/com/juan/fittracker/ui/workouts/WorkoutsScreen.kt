@@ -241,7 +241,10 @@ private fun WorkoutsList(
                     Spacer(Modifier.height(12.dp))
                     StartLiveButton(onClick = onStartLive)
                     Spacer(Modifier.height(8.dp))
-                    StatsButton(onClick = onOpenStats)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        ManualButton(onClick = onAdd, modifier = Modifier.weight(1f))
+                        StatsButton(onClick = onOpenStats, modifier = Modifier.weight(1f))
+                    }
                     Spacer(Modifier.height(24.dp))
                     EmptyState(onAdd = onAdd)
                 }
@@ -277,7 +280,10 @@ private fun WorkoutsList(
                     Spacer(Modifier.height(12.dp))
                     StartLiveButton(onClick = onStartLive)
                     Spacer(Modifier.height(8.dp))
-                    StatsButton(onClick = onOpenStats)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        ManualButton(onClick = onAdd, modifier = Modifier.weight(1f))
+                        StatsButton(onClick = onOpenStats, modifier = Modifier.weight(1f))
+                    }
                     Spacer(Modifier.height(16.dp))
                 }
                 items(workouts, key = { it.workout.id }) { item ->
@@ -287,17 +293,6 @@ private fun WorkoutsList(
                     )
                 }
             }
-        }
-        FloatingActionButton(
-            onClick = onAdd,
-            containerColor = Accent,
-            contentColor = BgDark,
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(20.dp),
-        ) {
-            Icon(Icons.Filled.Add, contentDescription = "Nuevo entreno")
         }
     }
 
@@ -353,15 +348,24 @@ private fun StartLiveButton(onClick: () -> Unit) {
 }
 
 @Composable
-private fun StatsButton(onClick: () -> Unit) {
+private fun StatsButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     OutlinedButton(
         onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp),
+        modifier = modifier.height(48.dp),
         shape = RoundedCornerShape(24.dp),
     ) {
-        Text("🍪  Galleto informe", color = Accent, fontWeight = FontWeight.SemiBold)
+        Text("🍪 Informe", color = Accent, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+    }
+}
+
+@Composable
+private fun ManualButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = modifier.height(48.dp),
+        shape = RoundedCornerShape(24.dp),
+    ) {
+        Text("✏ Manual", color = Accent, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
     }
 }
 
