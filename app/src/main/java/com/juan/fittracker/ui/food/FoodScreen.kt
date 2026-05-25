@@ -403,6 +403,8 @@ private fun MealRow(meal: MealEntry, onDelete: () -> Unit, showDate: Boolean = f
             if (meal.photoPath != null) {
                 MealThumbnail(path = meal.photoPath, size = 56.dp)
             } else {
+                val foodEmoji = com.juan.fittracker.data.emojiForFoodName(meal.name)
+                    ?: meal.mealType.emoji
                 Box(
                     modifier = Modifier
                         .size(56.dp)
@@ -410,7 +412,7 @@ private fun MealRow(meal: MealEntry, onDelete: () -> Unit, showDate: Boolean = f
                         .background(Color.White.copy(alpha = 0.06f)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(meal.mealType.emoji, fontSize = 28.sp)
+                    Text(foodEmoji, fontSize = 28.sp)
                 }
             }
             Spacer(Modifier.width(12.dp))
@@ -854,7 +856,7 @@ private fun QuickFoodsGrid(
                         onClick = { onToggle(food) },
                         label = {
                             Text(
-                                "${food.name} · ${food.kcal} kcal",
+                                "${food.emoji} ${food.name} · ${food.kcal} kcal",
                                 fontSize = 12.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                             )

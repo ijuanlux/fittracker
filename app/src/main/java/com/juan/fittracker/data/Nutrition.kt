@@ -61,7 +61,7 @@ object Nutrition {
     }
 }
 
-data class FoodPreset(val name: String, val kcal: Int)
+data class FoodPreset(val name: String, val kcal: Int, val emoji: String = "🍽")
 
 enum class FoodCuisine(val label: String) {
     Rola("Rolas"),
@@ -69,55 +69,61 @@ enum class FoodCuisine(val label: String) {
 }
 
 val rolaQuickFoods = listOf(
-    FoodPreset("Tamal tolimense", 600),
-    FoodPreset("Ajiaco", 400),
-    FoodPreset("Bandeja paisa", 1100),
-    FoodPreset("Chuletón", 800),
-    FoodPreset("Caldo de costilla", 250),
-    FoodPreset("Changua", 220),
-    FoodPreset("Arepa con queso", 280),
-    FoodPreset("Almojábana", 200),
-    FoodPreset("Buñuelo", 150),
-    FoodPreset("Aguapanela", 60),
-    FoodPreset("Tinto", 5),
-    FoodPreset("Empanada", 220),
-    FoodPreset("Lechona", 700),
-    FoodPreset("Sancocho de gallina", 500),
-    FoodPreset("Frijoles con chicharrón", 550),
-    FoodPreset("Patacón con hogao", 300),
-    FoodPreset("Pandebono", 150),
-    FoodPreset("Pandeyuca", 180),
-    FoodPreset("Mazorca asada con queso", 260),
-    FoodPreset("Mute santandereano", 450),
-    FoodPreset("Sobrebarriga", 500),
-    FoodPreset("Mondongo", 400),
-    FoodPreset("Cuchuco de trigo", 280),
-    FoodPreset("Obleas con arequipe", 260),
-    FoodPreset("Postre de tres leches", 350),
-    FoodPreset("Café con leche", 80),
-    FoodPreset("Avena (vaso)", 160),
+    FoodPreset("Tamal tolimense", 600, "🫔"),
+    FoodPreset("Ajiaco", 400, "🥣"),
+    FoodPreset("Bandeja paisa", 1100, "🍛"),
+    FoodPreset("Chuletón", 800, "🥩"),
+    FoodPreset("Caldo de costilla", 250, "🍲"),
+    FoodPreset("Changua", 220, "🍳"),
+    FoodPreset("Arepa con queso", 280, "🫓"),
+    FoodPreset("Almojábana", 200, "🥯"),
+    FoodPreset("Buñuelo", 150, "🍩"),
+    FoodPreset("Aguapanela", 60, "🍵"),
+    FoodPreset("Tinto", 5, "☕"),
+    FoodPreset("Empanada", 220, "🥟"),
+    FoodPreset("Lechona", 700, "🐖"),
+    FoodPreset("Sancocho de gallina", 500, "🍗"),
+    FoodPreset("Frijoles con chicharrón", 550, "🫘"),
+    FoodPreset("Patacón con hogao", 300, "🍌"),
+    FoodPreset("Pandebono", 150, "🥯"),
+    FoodPreset("Pandeyuca", 180, "🥖"),
+    FoodPreset("Mazorca asada con queso", 260, "🌽"),
+    FoodPreset("Mute santandereano", 450, "🍲"),
+    FoodPreset("Sobrebarriga", 500, "🥩"),
+    FoodPreset("Mondongo", 400, "🍲"),
+    FoodPreset("Cuchuco de trigo", 280, "🌾"),
+    FoodPreset("Obleas con arequipe", 260, "🍪"),
+    FoodPreset("Postre de tres leches", 350, "🍰"),
+    FoodPreset("Café con leche", 80, "☕"),
+    FoodPreset("Avena (vaso)", 160, "🥛"),
 )
 
 val mediterraneanQuickFoods = listOf(
-    FoodPreset("Ensalada César", 250),
-    FoodPreset("Paella", 600),
-    FoodPreset("Tortilla española", 300),
-    FoodPreset("Gazpacho", 150),
-    FoodPreset("Hummus con pan pita", 250),
-    FoodPreset("Salmón a la plancha", 350),
-    FoodPreset("Pollo a la plancha", 280),
-    FoodPreset("Pasta carbonara", 600),
-    FoodPreset("Pizza margarita", 700),
-    FoodPreset("Bocadillo de jamón", 400),
-    FoodPreset("Pan con tomate", 150),
-    FoodPreset("Falafel", 330),
-    FoodPreset("Yogur natural", 80),
-    FoodPreset("Lentejas estofadas", 250),
-    FoodPreset("Croquetas (4 ud)", 280),
-    FoodPreset("Cocido madrileño", 700),
+    FoodPreset("Ensalada César", 250, "🥗"),
+    FoodPreset("Paella", 600, "🥘"),
+    FoodPreset("Tortilla española", 300, "🍳"),
+    FoodPreset("Gazpacho", 150, "🥣"),
+    FoodPreset("Hummus con pan pita", 250, "🫓"),
+    FoodPreset("Salmón a la plancha", 350, "🐟"),
+    FoodPreset("Pollo a la plancha", 280, "🍗"),
+    FoodPreset("Pasta carbonara", 600, "🍝"),
+    FoodPreset("Pizza margarita", 700, "🍕"),
+    FoodPreset("Bocadillo de jamón", 400, "🥖"),
+    FoodPreset("Pan con tomate", 150, "🍞"),
+    FoodPreset("Falafel", 330, "🧆"),
+    FoodPreset("Yogur natural", 80, "🥛"),
+    FoodPreset("Lentejas estofadas", 250, "🫘"),
+    FoodPreset("Croquetas (4 ud)", 280, "🥟"),
+    FoodPreset("Cocido madrileño", 700, "🍲"),
 )
 
 fun quickFoodsFor(cuisine: FoodCuisine): List<FoodPreset> = when (cuisine) {
     FoodCuisine.Rola -> rolaQuickFoods
     FoodCuisine.Mediterranea -> mediterraneanQuickFoods
+}
+
+fun emojiForFoodName(name: String): String? {
+    val needle = name.trim()
+    return rolaQuickFoods.firstOrNull { it.name.equals(needle, ignoreCase = true) }?.emoji
+        ?: mediterraneanQuickFoods.firstOrNull { it.name.equals(needle, ignoreCase = true) }?.emoji
 }
