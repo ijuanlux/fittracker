@@ -196,6 +196,15 @@ fun LiveSessionScreen(
     val exerciseList = routine.sortedExercises
 
     val completed = remember { mutableStateListOf<Int>() }
+    val weightInputs = remember(exerciseList) {
+        mutableStateListOf<String>().apply {
+            exerciseList.forEach {
+                add(if (it.weightKg > 0f) {
+                    if (it.weightKg % 1f == 0f) it.weightKg.toInt().toString() else it.weightKg.toString()
+                } else "")
+            }
+        }
+    }
     var quoteKey by remember { mutableIntStateOf(0) }
     var showConfetti by remember { mutableStateOf(false) }
     var saved by remember { mutableStateOf(false) }
@@ -232,6 +241,10 @@ fun LiveSessionScreen(
                 }
                 .flatMap { (exIdx, ex) ->
                     val reps = parseReps(ex.repsText)
+                    val w = weightInputs.getOrNull(exIdx)
+                        ?.replace(',', '.')?.toFloatOrNull()
+                        ?.coerceAtLeast(0f)
+                        ?: ex.weightKg
                     (0 until ex.sets).map { setIdx ->
                         ExerciseSet(
                             workoutId = 0L,
@@ -239,7 +252,7 @@ fun LiveSessionScreen(
                             exerciseIndex = exIdx,
                             setIndex = setIdx,
                             reps = reps,
-                            weightKg = 0f,
+                            weightKg = w,
                         )
                     }
                 }
@@ -368,6 +381,31 @@ fun LiveSessionScreen(
                                     fontSize = 13.sp,
                                 )
                             }
+                            androidx.compose.material3.OutlinedTextField(
+                                value = weightInputs.getOrElse(idx) { "" },
+                                onValueChange = { v ->
+                                    val clean = v.filter { it.isDigit() || it == '.' || it == ',' }
+                                        .replace(',', '.').take(6)
+                                    if (idx in weightInputs.indices) weightInputs[idx] = clean
+                                },
+                                placeholder = { Text("kg", fontSize = 11.sp) },
+                                singleLine = true,
+                                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
+                                ),
+                                textStyle = androidx.compose.ui.text.TextStyle(
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                ),
+                                modifier = Modifier.width(78.dp),
+                                colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f),
+                                    cursorColor = MaterialTheme.colorScheme.primary,
+                                ),
+                            )
                         }
                     }
                 }

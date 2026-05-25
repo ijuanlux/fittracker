@@ -14,7 +14,7 @@ import java.util.Locale
         Workout::class, ExerciseSet::class, MealEntry::class, AchievementUnlock::class,
         Routine::class, RoutineExerciseEntity::class, CardioSession::class,
     ],
-    version = 6,
+    version = 7,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {

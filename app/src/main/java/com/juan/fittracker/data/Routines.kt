@@ -36,6 +36,7 @@ data class RoutineExerciseEntity(
     val repsText: String,
     val orderIndex: Int,
     val restSeconds: Int = 60,
+    val weightKg: Float = 0f,
 )
 
 data class RoutineWithExercises(
@@ -49,7 +50,7 @@ data class RoutineWithExercises(
 
 // ============ Seed templates ============
 
-data class SeedExercise(val name: String, val sets: Int, val reps: String, val rest: Int = 60)
+data class SeedExercise(val name: String, val sets: Int, val reps: String, val rest: Int = 60, val weight: Float = 0f)
 data class SeedRoutine(val name: String, val emoji: String, val exercises: List<SeedExercise>)
 
 object DefaultRoutines {
@@ -141,6 +142,7 @@ object DefaultRoutines {
                         repsText = e.reps,
                         orderIndex = idx,
                         restSeconds = e.rest,
+                        weightKg = e.weight,
                     )
                 },
             )

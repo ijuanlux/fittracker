@@ -223,11 +223,13 @@ private class RoutineExerciseForm(
     sets: String = "3",
     reps: String = "10",
     rest: String = "60",
+    weight: String = "",
 ) {
     var name by mutableStateOf(name)
     var sets by mutableStateOf(sets)
     var reps by mutableStateOf(reps)
     var rest by mutableStateOf(rest)
+    var weight by mutableStateOf(weight)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -247,7 +249,15 @@ private fun RoutineFormScreen(
         mutableStateListOf<RoutineExerciseForm>().apply {
             if (initial != null) {
                 addAll(initial.sortedExercises.map {
-                    RoutineExerciseForm(it.exerciseName, it.sets.toString(), it.repsText, it.restSeconds.toString())
+                    RoutineExerciseForm(
+                        name = it.exerciseName,
+                        sets = it.sets.toString(),
+                        reps = it.repsText,
+                        rest = it.restSeconds.toString(),
+                        weight = if (it.weightKg > 0f) {
+                            if (it.weightKg % 1f == 0f) it.weightKg.toInt().toString() else it.weightKg.toString()
+                        } else "",
+                    )
                 })
             } else {
                 add(RoutineExerciseForm())
@@ -363,6 +373,22 @@ private fun RoutineFormScreen(
                                 modifier = Modifier.weight(1f),
                                 colors = darkTfColors(),
                             )
+                        }
+                        Spacer(Modifier.height(6.dp))
+                        Row {
+                            OutlinedTextField(
+                                value = ex.weight,
+                                onValueChange = { v ->
+                                    ex.weight = v.filter { it.isDigit() || it == '.' || it == ',' }
+                                        .replace(',', '.').take(6)
+                                },
+                                label = { Text("Peso (kg)", fontSize = 11.sp) },
+                                placeholder = { Text("0 = corporal", fontSize = 11.sp) },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier.weight(1f),
+                                colors = darkTfColors(),
+                            )
                             Spacer(Modifier.width(8.dp))
                             OutlinedTextField(
                                 value = ex.rest,
@@ -406,6 +432,7 @@ private fun RoutineFormScreen(
                                 repsText = e.reps.ifBlank { "10" },
                                 orderIndex = i,
                                 restSeconds = e.rest.toIntOrNull()?.coerceIn(0, 600) ?: 60,
+                                weightKg = e.weight.toFloatOrNull()?.coerceAtLeast(0f) ?: 0f,
                             )
                         }
                     dao.saveRoutine(routine, exs)
