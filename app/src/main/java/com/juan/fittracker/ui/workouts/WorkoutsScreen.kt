@@ -106,21 +106,56 @@ private val Danger: Color
 private sealed class Mode {
     data object List : Mode()
     data object Adding : Mode()
+    data object PickRoutine : Mode()
+    data object ManageRoutines : Mode()
+    data object Stats : Mode()
+    data class LiveSession(val routine: com.juan.fittracker.data.RoutineWithExercises) : Mode()
 }
 
 @Composable
 fun WorkoutsScreen(profile: UserProfile) {
     var mode by remember { mutableStateOf<Mode>(Mode.List) }
     var showConfetti by remember { mutableStateOf(false) }
-    BackHandler(enabled = mode is Mode.Adding) { mode = Mode.List }
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        runCatching { com.juan.fittracker.data.DefaultRoutines.seedIfEmpty(context) }
+    }
+    BackHandler(enabled = mode !is Mode.List) { mode = Mode.List }
     Box(modifier = Modifier.fillMaxSize()) {
         Crossfade(targetState = mode, animationSpec = tween(300), label = "workouts-mode") { current ->
             when (current) {
-                Mode.List -> WorkoutsList(profile = profile, onAdd = { mode = Mode.Adding })
+                Mode.List -> WorkoutsList(
+                    profile = profile,
+                    onAdd = { mode = Mode.Adding },
+                    onStartLive = { mode = Mode.PickRoutine },
+                    onOpenStats = { mode = Mode.Stats },
+                )
+                Mode.Stats -> WorkoutStatsScreen(
+                    profile = profile,
+                    onBack = { mode = Mode.List },
+                )
                 Mode.Adding -> AddWorkoutForm(
                     onCancel = { mode = Mode.List },
                     onSaved = {
                         SoundFx.playSuccess()
+                        showConfetti = true
+                        mode = Mode.List
+                    },
+                )
+                Mode.PickRoutine -> RoutinePicker(
+                    onCancel = { mode = Mode.List },
+                    onPick = { routine -> mode = Mode.LiveSession(routine) },
+                    onCreateNew = { mode = Mode.ManageRoutines },
+                    onManage = { mode = Mode.ManageRoutines },
+                )
+                Mode.ManageRoutines -> RoutinesEditorScreen(
+                    onBack = { mode = Mode.PickRoutine },
+                )
+                is Mode.LiveSession -> LiveSessionScreen(
+                    profile = profile,
+                    routine = current.routine,
+                    onCancel = { mode = Mode.List },
+                    onCompleted = {
                         showConfetti = true
                         mode = Mode.List
                     },
@@ -132,7 +167,12 @@ fun WorkoutsScreen(profile: UserProfile) {
 }
 
 @Composable
-private fun WorkoutsList(profile: UserProfile, onAdd: () -> Unit) {
+private fun WorkoutsList(
+    profile: UserProfile,
+    onAdd: () -> Unit,
+    onStartLive: () -> Unit,
+    onOpenStats: () -> Unit,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val dao = remember(context) { Db.get(context).workoutDao() }
@@ -196,6 +236,10 @@ private fun WorkoutsList(profile: UserProfile, onAdd: () -> Unit) {
                         speaking = speaking,
                         onTap = { quoteKey++ },
                     )
+                    Spacer(Modifier.height(12.dp))
+                    StartLiveButton(onClick = onStartLive)
+                    Spacer(Modifier.height(8.dp))
+                    StatsButton(onClick = onOpenStats)
                     Spacer(Modifier.height(24.dp))
                     EmptyState(onAdd = onAdd)
                 }
@@ -228,6 +272,10 @@ private fun WorkoutsList(profile: UserProfile, onAdd: () -> Unit) {
                         speaking = speaking,
                         onTap = { quoteKey++ },
                     )
+                    Spacer(Modifier.height(12.dp))
+                    StartLiveButton(onClick = onStartLive)
+                    Spacer(Modifier.height(8.dp))
+                    StatsButton(onClick = onOpenStats)
                     Spacer(Modifier.height(16.dp))
                 }
                 items(workouts, key = { it.workout.id }) { item ->
@@ -283,6 +331,36 @@ private fun WorkoutsList(profile: UserProfile, onAdd: () -> Unit) {
 private fun isTodayWorkout(epochMs: Long): Boolean {
     val date = Instant.ofEpochMilli(epochMs).atZone(ZoneId.systemDefault()).toLocalDate()
     return date == LocalDate.now()
+}
+
+@Composable
+private fun StartLiveButton(onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp),
+        shape = RoundedCornerShape(28.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Accent,
+            contentColor = BgDark,
+        ),
+    ) {
+        Text("▶  Iniciar entreno guiado", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun StatsButton(onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp),
+        shape = RoundedCornerShape(24.dp),
+    ) {
+        Text("🍪  Galleto informe", color = Accent, fontWeight = FontWeight.SemiBold)
+    }
 }
 
 @Composable

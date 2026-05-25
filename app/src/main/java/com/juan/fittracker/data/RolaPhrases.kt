@@ -1007,6 +1007,83 @@ object RolaPhrases {
         "Galletoide se quita el sombrero. Bestial.",
     )
 
+    // ============ LIVE WORKOUT HYPE ============
+    val liveWorkoutHype = listOf(
+        "¡VAMOS, marica! ¡Una más!",
+        "¡Hijuepucha, está volando! Métale.",
+        "¡Subiendo Monserrate sin parar, dele!",
+        "¡UNA MÁS Y SE ACABA, parcero!",
+        "¡Galletoide aprueba con sello dorado!",
+        "¡No me joda con la pereza, {BRO}!",
+        "¡Estamos en racha! No afloje.",
+        "¡Esa última cuenta doble, dele!",
+        "¡Una serie más y nos vamos al ajiaco!",
+        "¡Le falta poquito, mijitic{A}!",
+        "¡Eso, eso, eso! ¡No pare!",
+        "¡Está dando duro, qué nota!",
+        "¡Galletoide en modo Hulk!",
+        "¡Saque la berraquera rola!",
+        "¡Mañana le salen abdominales solos!",
+        "¡Como TransMi en hora pico: con todo!",
+        "¡Hasta el sereno de Suba aplaudiría!",
+        "¡Ese músculo va a salir corriendo!",
+        "¡Bestialidad! Otra serie y top.",
+        "¡Compromiso nivel rolo cumpliendo!",
+        "¡Dele que Pan Yiyo lo está esperando!",
+        "¡Subiendo nivel, {BRO}, galletoide orgullosa!",
+        "¡La 80 entera lo va a aplaudir!",
+        "¡Hasta el celador del gym está admirado!",
+        "¡Eso es entrega, parce!",
+        "¡Como bus articulado: imparable!",
+        "¡Vamos pa' arriba, marica! No se rinda.",
+        "¡Le está sacando jugo al gym, qué chimba!",
+        "¡Saque la garra, hermano!",
+        "¡Una vuelta más y nos vamos!",
+        "¡FUEGO, {BRO}, fuego puro!",
+        "¡Esa pesa pesa menos hoy, dele!",
+        "¡Galletoide vibrando con cada serie!",
+        "¡Está rompiendo récord interno!",
+        "¡Bomba! ¡Más volumen, más bomba!",
+    )
+
+    val liveWorkoutComplete = listOf(
+        "¡SE ACABÓ, {BRO}! Tremenda sesión, marica.",
+        "¡Galletoide se quita el sombrero!",
+        "¡Brutal, mijitic{A}! Le metió con todo.",
+        "¡Hijuepucha, eso fue sesión nivel pro!",
+        "¡Lo logró! Ahora sopita y descanso.",
+        "¡Otra cumbre que sumamos, {BRO}!",
+        "¡Récord en vista! ¡Galletoide orgullosa!",
+        "¡Eso es comprometerse, marica! Top.",
+    )
+
+    // ============ STATS REPORT ============
+    val statsReportEmpty = listOf(
+        "Cero entrenos en este rango, mijitic{A}. ¿Y la berraquera?",
+        "Esto está más vacío que TransMi en domingo de paro.",
+        "Sin entrenos por acá, {BRO}. Sin data no hay informe.",
+        "Ni un squat registrado. Galletoide está sad.",
+    )
+    val statsReportLow = listOf(
+        "Pocos entrenos pero algo es algo, {BRO}.",
+        "Va lent{A}, marica. La próxima le metemos más.",
+        "Mínimo viable. Galletoide espera más.",
+        "Empezamos. Toca subir el ritmo, mijitic{A}.",
+    )
+    val statsReportMid = listOf(
+        "Va parejit{A}, {BRO}. Disciplina rola en marcha.",
+        "Consistencia decente. Sumemos un poquito más.",
+        "Buen ritmo, marica. Sigamos por ese camino.",
+        "Galletoide ve compromiso, pero hay que apretar.",
+    )
+    val statsReportHigh = listOf(
+        "¡Tremendo trabajo, marica!",
+        "¡Hijuepucha, qué disciplina rola!",
+        "Galletoide aplaude de pie, {BRO}.",
+        "¡Esto es nivel atleta, mijitic{A}!",
+        "Si sigue así, hasta el Cerro de Suba se le hace fácil.",
+    )
+
     // ============ PICKER ============
 
     fun pick(

@@ -10,14 +10,18 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @Database(
-    entities = [Workout::class, ExerciseSet::class, MealEntry::class, AchievementUnlock::class],
-    version = 3,
+    entities = [
+        Workout::class, ExerciseSet::class, MealEntry::class, AchievementUnlock::class,
+        Routine::class, RoutineExerciseEntity::class,
+    ],
+    version = 4,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun workoutDao(): WorkoutDao
     abstract fun mealDao(): MealDao
     abstract fun achievementDao(): AchievementDao
+    abstract fun routineDao(): RoutineDao
 }
 
 object Db {
