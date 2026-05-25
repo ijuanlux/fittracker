@@ -1084,6 +1084,44 @@ object RolaPhrases {
         "Si sigue así, hasta el Cerro de Suba se le hace fácil.",
     )
 
+    val cardioEmpty = listOf(
+        "Sin cardio esta semana, {BRO}. El septimazo le hace falta.",
+        "El Monserrate no se sube solo, mijitic{A}.",
+        "Esto está más quiet{A} que TransMi en paro. ¡Camine!",
+        "Sin sudor cardiovascular, marica. ¿Qué pasó?",
+        "Ni un trotecito por el Quirigua. Galletoide preocupad{A}.",
+        "Hasta los abuelos del Bachué le ganan caminando, mijitic{A}.",
+        "Salga aunque sea a darle vuelta al parque, {BRO}.",
+        "El corazón también entrena. Métale cardio.",
+        "Ni un step extra. Esto huele a Netflix nivel pro.",
+        "Sin cardio no hay paraíso, marica.",
+    )
+    val cardioLight = listOf(
+        "Algo es algo, {BRO}. Métale más cardio esta semana.",
+        "Va arrancando, mijitic{A}. No se quede ahí.",
+        "Un solo cardio no hace verano rolo, marica.",
+        "Más vueltas por Quirigua, {BRO}.",
+        "Subiendo poco a poco como en la 7ma con tráfico.",
+        "Le falta gasolina cardio, mijitic{A}. Empuje.",
+    )
+    val cardioRegular = listOf(
+        "¡Eso es, {BRO}! Cardio rola activad{A}.",
+        "Va parej{A} la pulmonada esta semana, mijitic{A}.",
+        "Eso, dándole como cuando hay que alcanzar el TransMi.",
+        "Cardio decente, marica. Sigamos así.",
+        "Pinta de fondist{A} de la 7ma, {BRO}.",
+        "Galletoide aplaude esos minutos en marcha.",
+    )
+    val cardioBeast = listOf(
+        "¡Hijuepucha, qué cardio rola, {BRO}!",
+        "Estás dándole duro como en el septimazo, marica.",
+        "Subiendo Monserrate sin patinar, mijitic{A}.",
+        "Pinta de maratonist{A} del Quirigua.",
+        "El corazón le da gracias por esa berraquera cardio.",
+        "Galletoide en shock, ese ritmo es de élite rola.",
+        "Más cardio que rolo apurad{A} pa' su chamba.",
+    )
+
     // ============ PICKER ============
 
     fun pick(

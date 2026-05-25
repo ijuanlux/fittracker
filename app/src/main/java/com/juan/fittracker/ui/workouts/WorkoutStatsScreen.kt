@@ -75,7 +75,9 @@ fun WorkoutStatsScreen(profile: UserProfile, onBack: () -> Unit) {
     val context = LocalContext.current
     val dao = remember(context) { Db.get(context).workoutDao() }
     val achievementDao = remember(context) { Db.get(context).achievementDao() }
+    val cardioDao = remember(context) { Db.get(context).cardioDao() }
     val workouts by dao.observeAll().collectAsState(initial = emptyList())
+    val cardioAll by cardioDao.observeAll().collectAsState(initial = emptyList())
     val unlocks by achievementDao.observeAll().collectAsState(initial = emptyList())
     val level = Levels.level(Levels.totalXp(unlocks))
 
@@ -96,7 +98,7 @@ fun WorkoutStatsScreen(profile: UserProfile, onBack: () -> Unit) {
             "${formatShortDate(customStart)} – ${formatShortDate(customEnd)}",
         )
     }
-    val stats = WorkoutStatsComputer.compute(workouts, startMs, endMs, rangeLabel)
+    val stats = WorkoutStatsComputer.compute(workouts, startMs, endMs, rangeLabel, cardioAll)
 
     val bro = when (profile.sex) {
         Sex.Male -> "hermano"
@@ -255,6 +257,9 @@ fun WorkoutStatsScreen(profile: UserProfile, onBack: () -> Unit) {
             item { MuscleBreakdownCard(stats.setsByMuscleGroup) }
             item { ListCard("Ejercicios top", stats.topExercises) }
             item { ListCard("Rutinas top", stats.topRoutines) }
+            if (stats.cardio.totalSessions > 0) {
+                item { CardioSectionCard(stats.cardio) }
+            }
         }
     }
 
@@ -310,6 +315,77 @@ private fun SmallStatCard(label: String, value: String, modifier: Modifier = Mod
             Spacer(Modifier.height(4.dp))
             Text(value, color = MaterialTheme.colorScheme.onSurface, fontSize = 22.sp, fontWeight = FontWeight.Black)
         }
+    }
+}
+
+@Composable
+private fun CardioSectionCard(c: com.juan.fittracker.data.CardioStats) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text(
+                "🏃 Cardio",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Black,
+            )
+            Spacer(Modifier.height(8.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                CardioCell("${c.totalSessions}", "sesiones")
+                CardioCell("${c.totalMinutes}", "min")
+                CardioCell(if (c.totalKm > 0f) "%.1f".format(c.totalKm) else "—", "km")
+                CardioCell(if (c.totalKcal > 0) "${c.totalKcal}" else "—", "kcal")
+            }
+            Spacer(Modifier.height(12.dp))
+            if (c.sessionsByType.isNotEmpty()) {
+                val max = c.sessionsByType.maxOf { it.second }.toFloat().coerceAtLeast(1f)
+                c.sessionsByType.take(6).forEach { (label, count) ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            label,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 12.sp,
+                            modifier = Modifier.width(110.dp),
+                        )
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(10.dp)
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f), RoundedCornerShape(5.dp)),
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(count.toFloat() / max)
+                                    .height(10.dp)
+                                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(5.dp)),
+                            )
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            "$count",
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.width(28.dp),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CardioCell(value: String, label: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Black)
+        Text(label, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), fontSize = 11.sp)
     }
 }
 

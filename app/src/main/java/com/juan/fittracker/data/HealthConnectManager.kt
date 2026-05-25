@@ -36,6 +36,14 @@ data class HeartRateStats(
     val hasData: Boolean get() = latestBpm != null || dayAvg != null
 }
 
+data class HcExerciseSession(
+    val externalId: String,
+    val startEpochMs: Long,
+    val durationMin: Int,
+    val exerciseType: Int,
+    val title: String?,
+)
+
 data class SleepStats(
     val totalMinutes: Long,
     val sessionsCount: Int,
@@ -143,6 +151,30 @@ object HealthConnectManager {
             dayMin = agg[HeartRateRecord.BPM_MIN],
             dayMax = agg[HeartRateRecord.BPM_MAX],
         )
+    }
+
+    suspend fun readExerciseSessions(client: HealthConnectClient, days: Int = 14): List<HcExerciseSession> {
+        val zone = ZoneId.systemDefault()
+        val today = LocalDate.now()
+        val start = today.minusDays(days.toLong()).atStartOfDay(zone).toInstant()
+        val end = Instant.now()
+        val records = client.readRecords(
+            ReadRecordsRequest(
+                recordType = ExerciseSessionRecord::class,
+                timeRangeFilter = TimeRangeFilter.between(start, end),
+                ascendingOrder = false,
+            ),
+        ).records
+        return records.map { rec ->
+            val minutes = Duration.between(rec.startTime, rec.endTime).toMinutes().toInt()
+            HcExerciseSession(
+                externalId = rec.metadata.id,
+                startEpochMs = rec.startTime.toEpochMilli(),
+                durationMin = minutes.coerceAtLeast(0),
+                exerciseType = rec.exerciseType,
+                title = rec.title,
+            )
+        }
     }
 
     suspend fun readLastNightSleep(client: HealthConnectClient): SleepStats {

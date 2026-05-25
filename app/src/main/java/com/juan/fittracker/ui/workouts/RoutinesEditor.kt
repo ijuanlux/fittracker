@@ -218,10 +218,16 @@ private fun RoutinesListScreen(
     }
 }
 
-private class RoutineExerciseForm(name: String = "", sets: String = "3", reps: String = "10") {
+private class RoutineExerciseForm(
+    name: String = "",
+    sets: String = "3",
+    reps: String = "10",
+    rest: String = "60",
+) {
     var name by mutableStateOf(name)
     var sets by mutableStateOf(sets)
     var reps by mutableStateOf(reps)
+    var rest by mutableStateOf(rest)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -240,7 +246,9 @@ private fun RoutineFormScreen(
     val exercises = remember {
         mutableStateListOf<RoutineExerciseForm>().apply {
             if (initial != null) {
-                addAll(initial.sortedExercises.map { RoutineExerciseForm(it.exerciseName, it.sets.toString(), it.repsText) })
+                addAll(initial.sortedExercises.map {
+                    RoutineExerciseForm(it.exerciseName, it.sets.toString(), it.repsText, it.restSeconds.toString())
+                })
             } else {
                 add(RoutineExerciseForm())
             }
@@ -355,6 +363,17 @@ private fun RoutineFormScreen(
                                 modifier = Modifier.weight(1f),
                                 colors = darkTfColors(),
                             )
+                            Spacer(Modifier.width(8.dp))
+                            OutlinedTextField(
+                                value = ex.rest,
+                                onValueChange = { v -> ex.rest = v.filter { it.isDigit() }.take(4) },
+                                label = { Text("Descanso (s)", fontSize = 11.sp) },
+                                placeholder = { Text("60", fontSize = 11.sp) },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier.weight(1f),
+                                colors = darkTfColors(),
+                            )
                         }
                     }
                 }
@@ -386,6 +405,7 @@ private fun RoutineFormScreen(
                                 sets = e.sets.toIntOrNull()?.coerceAtLeast(1) ?: 1,
                                 repsText = e.reps.ifBlank { "10" },
                                 orderIndex = i,
+                                restSeconds = e.rest.toIntOrNull()?.coerceIn(0, 600) ?: 60,
                             )
                         }
                     dao.saveRoutine(routine, exs)

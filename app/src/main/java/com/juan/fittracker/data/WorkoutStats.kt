@@ -16,7 +16,22 @@ data class WorkoutStats(
     val topExercises: List<Pair<String, Int>>,
     val topRoutines: List<Pair<String, Int>>,
     val setsByMuscleGroup: List<Pair<String, Int>>,
+    val cardio: CardioStats = CardioStats.Empty,
 )
+
+data class CardioStats(
+    val totalSessions: Int,
+    val totalMinutes: Int,
+    val totalKm: Float,
+    val totalKcal: Int,
+    val avgSessionsPerWeek: Float,
+    val sessionsByType: List<Pair<String, Int>>,
+    val minutesByType: List<Pair<String, Int>>,
+) {
+    companion object {
+        val Empty = CardioStats(0, 0, 0f, 0, 0f, emptyList(), emptyList())
+    }
+}
 
 object WorkoutStatsComputer {
     fun compute(
@@ -24,6 +39,7 @@ object WorkoutStatsComputer {
         startMs: Long,
         endMs: Long,
         rangeLabel: String,
+        cardioAll: List<CardioSession> = emptyList(),
     ): WorkoutStats {
         val filtered = all.filter { it.workout.dateEpochMs in startMs..endMs }
         val totalWorkouts = filtered.size
@@ -71,6 +87,25 @@ object WorkoutStatsComputer {
             .sortedByDescending { it.value }
             .map { it.key to it.value }
 
+        val cardioFiltered = cardioAll.filter { it.dateEpochMs in startMs..endMs }
+        val cardioStats = if (cardioFiltered.isEmpty()) CardioStats.Empty else {
+            val totalMin = cardioFiltered.sumOf { it.durationMin }
+            val totalKm = cardioFiltered.sumOf { (it.distanceKm ?: 0f).toDouble() }.toFloat()
+            val totalKcal = cardioFiltered.sumOf { it.kcal ?: 0 }
+            val byTypeCount = cardioFiltered.groupingBy { it.type.label }.eachCount()
+            val byTypeMin = cardioFiltered.groupBy { it.type.label }
+                .mapValues { (_, v) -> v.sumOf { it.durationMin } }
+            CardioStats(
+                totalSessions = cardioFiltered.size,
+                totalMinutes = totalMin,
+                totalKm = totalKm,
+                totalKcal = totalKcal,
+                avgSessionsPerWeek = cardioFiltered.size / weeks,
+                sessionsByType = byTypeCount.entries.sortedByDescending { it.value }.map { it.key to it.value },
+                minutesByType = byTypeMin.entries.sortedByDescending { it.value }.map { it.key to it.value },
+            )
+        }
+
         return WorkoutStats(
             rangeLabel = rangeLabel,
             totalWorkouts = totalWorkouts,
@@ -83,6 +118,7 @@ object WorkoutStatsComputer {
             topExercises = topExercises,
             topRoutines = topRoutines,
             setsByMuscleGroup = setsByMuscleGroup,
+            cardio = cardioStats,
         )
     }
 }

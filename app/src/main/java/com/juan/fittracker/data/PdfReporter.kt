@@ -46,6 +46,19 @@ object PdfReporter {
 
             doc.finishPage(page)
 
+            if (stats.cardio.totalSessions > 0) {
+                val page2Info = PdfDocument.PageInfo.Builder(PAGE_W, PAGE_H, 2).create()
+                val page2 = doc.startPage(page2Info)
+                val canvas2 = page2.canvas
+                drawBackground(canvas2)
+                drawCardioHeader(canvas2, stats)
+                drawCardioStatsGrid(canvas2, stats.cardio)
+                drawCardioPie(canvas2, stats.cardio)
+                drawCardioTypeBars(canvas2, stats.cardio)
+                drawFooter(canvas2)
+                doc.finishPage(page2)
+            }
+
             val dir = File(
                 context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
                 "reports",
@@ -556,6 +569,172 @@ object PdfReporter {
             val track = Paint().apply { color = Color.parseColor("#EAD6B0"); isAntiAlias = true }
             canvas.drawRoundRect(MARGIN, y, MARGIN + barAreaW, y + barH, 10f, 10f, track)
             val fillW = (count / max) * barAreaW
+            val fill = Paint().apply { color = Color.parseColor("#FFC58A"); isAntiAlias = true }
+            canvas.drawRoundRect(MARGIN, y, MARGIN + fillW, y + barH, 10f, 10f, fill)
+            y += barH + gap + 10f
+        }
+    }
+
+    // ===== Cardio page =====
+    private fun drawCardioHeader(canvas: Canvas, stats: WorkoutStats) {
+        val accent = Paint().apply { color = Color.parseColor("#FFC58A") }
+        canvas.drawRect(0f, 0f, 8f, PAGE_H.toFloat(), accent)
+        val yellow = Paint().apply { color = Color.parseColor("#FCD116") }
+        val blue = Paint().apply { color = Color.parseColor("#003893") }
+        val red = Paint().apply { color = Color.parseColor("#CE1126") }
+        canvas.drawRect(8f, 0f, 16f, PAGE_H * 0.5f, yellow)
+        canvas.drawRect(8f, PAGE_H * 0.5f, 16f, PAGE_H * 0.75f, blue)
+        canvas.drawRect(8f, PAGE_H * 0.75f, 16f, PAGE_H.toFloat(), red)
+
+        val title = Paint().apply {
+            isAntiAlias = true
+            color = Color.parseColor("#15100B")
+            textSize = 30f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        }
+        canvas.drawText("Galleto cardio", MARGIN, 60f, title)
+        val subtitle = Paint().apply {
+            isAntiAlias = true
+            color = Color.parseColor("#8B5A2B")
+            textSize = 14f
+        }
+        canvas.drawText("Resumen de cardio · ${stats.rangeLabel}", MARGIN, 84f, subtitle)
+        val sep = Paint().apply { color = Color.parseColor("#FFC58A"); strokeWidth = 2f }
+        canvas.drawLine(MARGIN, 100f, PAGE_W - MARGIN, 100f, sep)
+    }
+
+    private fun drawCardioStatsGrid(canvas: Canvas, c: com.juan.fittracker.data.CardioStats) {
+        val boxes = listOf(
+            "SESIONES" to c.totalSessions.toString(),
+            "MINUTOS" to c.totalMinutes.toString(),
+            "KM" to if (c.totalKm > 0f) "%.1f".format(c.totalKm) else "—",
+            "KCAL" to if (c.totalKcal > 0) c.totalKcal.toString() else "—",
+            "PROM/SEM" to "%.1f".format(c.avgSessionsPerWeek),
+            "TIPOS" to c.sessionsByType.size.toString(),
+        )
+        val cellW = (PAGE_W - 2 * MARGIN - 20f) / 3f
+        val cellH = 70f
+        val startX = MARGIN
+        val startY = 120f
+        boxes.forEachIndexed { i, (label, value) ->
+            val col = i % 3
+            val row = i / 3
+            val x = startX + col * (cellW + 10f)
+            val y = startY + row * (cellH + 10f)
+            val bg = Paint().apply { color = Color.parseColor("#FAF1E0"); isAntiAlias = true }
+            canvas.drawRoundRect(x, y, x + cellW, y + cellH, 12f, 12f, bg)
+            val border = Paint().apply {
+                color = Color.parseColor("#FFC58A")
+                style = Paint.Style.STROKE
+                strokeWidth = 1.5f
+            }
+            canvas.drawRoundRect(x, y, x + cellW, y + cellH, 12f, 12f, border)
+            val labelPaint = Paint().apply {
+                isAntiAlias = true
+                color = Color.parseColor("#8B5A2B")
+                textSize = 10f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+            canvas.drawText(label, x + 10f, y + 22f, labelPaint)
+            val valuePaint = Paint().apply {
+                isAntiAlias = true
+                color = Color.parseColor("#2E1F14")
+                textSize = 24f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+            canvas.drawText(value, x + 10f, y + 56f, valuePaint)
+        }
+    }
+
+    private fun drawCardioPie(canvas: Canvas, c: com.juan.fittracker.data.CardioStats) {
+        if (c.sessionsByType.isEmpty()) return
+        val centerX = PAGE_W / 2f
+        val centerY = 370f
+        val radius = 70f
+        val titlePaint = Paint().apply {
+            isAntiAlias = true
+            color = Color.parseColor("#2E1F14")
+            textSize = 16f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        }
+        canvas.drawText("Sesiones por tipo", MARGIN, 290f, titlePaint)
+
+        val total = c.sessionsByType.sumOf { it.second }.toFloat().coerceAtLeast(1f)
+        val palette = listOf(
+            "#FFC58A", "#E08C5B", "#CE1126", "#003893", "#FCD116",
+            "#8B5A2B", "#A26841", "#D9A26B", "#5C3A1E",
+        ).map { Color.parseColor(it) }
+        var startAngle = -90f
+        c.sessionsByType.forEachIndexed { i, (_, count) ->
+            val sweep = (count / total) * 360f
+            val slice = Paint().apply {
+                isAntiAlias = true
+                color = palette[i % palette.size]
+                style = Paint.Style.FILL
+            }
+            canvas.drawArc(
+                centerX - radius, centerY - radius,
+                centerX + radius, centerY + radius,
+                startAngle, sweep, true, slice,
+            )
+            startAngle += sweep
+        }
+        // donut hole
+        val hole = Paint().apply { color = Color.parseColor("#FFF8E7"); isAntiAlias = true }
+        canvas.drawCircle(centerX, centerY, radius * 0.5f, hole)
+
+        // legend
+        var legendY = 290f + 30f
+        val legendX = PAGE_W - MARGIN - 160f
+        c.sessionsByType.forEachIndexed { i, (label, count) ->
+            val sliceColor = palette[i % palette.size]
+            val sq = Paint().apply { this.color = sliceColor; isAntiAlias = true }
+            canvas.drawRect(legendX, legendY - 9f, legendX + 12f, legendY + 1f, sq)
+            val labelP = Paint().apply {
+                isAntiAlias = true
+                this.color = Color.parseColor("#2E1F14")
+                textSize = 11f
+            }
+            val pct = ((count / total) * 100).toInt()
+            canvas.drawText("$label  ·  $count ($pct%)", legendX + 18f, legendY, labelP)
+            legendY += 16f
+        }
+    }
+
+    private fun drawCardioTypeBars(canvas: Canvas, c: com.juan.fittracker.data.CardioStats) {
+        if (c.minutesByType.isEmpty()) return
+        val sectionY = 490f
+        val titlePaint = Paint().apply {
+            isAntiAlias = true
+            color = Color.parseColor("#2E1F14")
+            textSize = 16f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        }
+        canvas.drawText("Minutos por tipo", MARGIN, sectionY, titlePaint)
+        val items = c.minutesByType.take(6)
+        val max = items.maxOf { it.second }.toFloat().coerceAtLeast(1f)
+        val barAreaW = PAGE_W - 2 * MARGIN
+        val barH = 20f
+        val gap = 10f
+        var y = sectionY + 20f
+        items.forEach { (name, mins) ->
+            val labelPaint = Paint().apply {
+                isAntiAlias = true
+                color = Color.parseColor("#2E1F14")
+                textSize = 12f
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            }
+            canvas.drawText(name, MARGIN, y, labelPaint)
+            val countPaint = Paint().apply {
+                isAntiAlias = true
+                color = Color.parseColor("#8B5A2B")
+                textSize = 11f
+            }
+            canvas.drawText("$mins min", PAGE_W - MARGIN - 60f, y, countPaint)
+            y += 5f
+            val track = Paint().apply { color = Color.parseColor("#EAD6B0"); isAntiAlias = true }
+            canvas.drawRoundRect(MARGIN, y, MARGIN + barAreaW, y + barH, 10f, 10f, track)
+            val fillW = (mins / max) * barAreaW
             val fill = Paint().apply { color = Color.parseColor("#FFC58A"); isAntiAlias = true }
             canvas.drawRoundRect(MARGIN, y, MARGIN + fillW, y + barH, 10f, 10f, fill)
             y += barH + gap + 10f

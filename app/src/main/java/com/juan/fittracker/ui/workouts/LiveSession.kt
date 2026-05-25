@@ -360,7 +360,10 @@ fun LiveSessionScreen(
                                     textDecoration = if (done) TextDecoration.LineThrough else TextDecoration.None,
                                 )
                                 Text(
-                                    "${ex.sets} series × ${ex.repsText}",
+                                    buildString {
+                                        append("${ex.sets} series × ${ex.repsText}")
+                                        if (ex.restSeconds > 0) append("  ·  💤 ${formatRest(ex.restSeconds)}")
+                                    },
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                                     fontSize = 13.sp,
                                 )
@@ -436,4 +439,11 @@ fun LiveSessionScreen(
 private fun parseReps(s: String): Int {
     val first = s.takeWhile { it.isDigit() }
     return first.toIntOrNull() ?: 10
+}
+
+private fun formatRest(sec: Int): String {
+    if (sec < 60) return "${sec}s"
+    val m = sec / 60
+    val s = sec % 60
+    return if (s == 0) "${m}m" else "${m}m ${s}s"
 }

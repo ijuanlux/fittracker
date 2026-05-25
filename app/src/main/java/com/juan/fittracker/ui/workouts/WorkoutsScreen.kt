@@ -168,8 +168,64 @@ fun WorkoutsScreen(profile: UserProfile) {
     }
 }
 
+private enum class WorkoutsTab { Fuerza, Cardio }
+
 @Composable
 private fun WorkoutsList(
+    profile: UserProfile,
+    onAdd: () -> Unit,
+    onStartLive: () -> Unit,
+    onOpenStats: () -> Unit,
+) {
+    var tab by remember { mutableStateOf(WorkoutsTab.Fuerza) }
+    Column(modifier = Modifier.fillMaxSize()) {
+        WorkoutsTabBar(tab = tab, onTab = { tab = it })
+        Crossfade(targetState = tab, animationSpec = tween(220), label = "wk-tab") { current ->
+            when (current) {
+                WorkoutsTab.Fuerza -> FuerzaTab(
+                    profile = profile,
+                    onAdd = onAdd,
+                    onStartLive = onStartLive,
+                    onOpenStats = onOpenStats,
+                )
+                WorkoutsTab.Cardio -> CardioContent(profile = profile)
+            }
+        }
+    }
+}
+
+@Composable
+private fun WorkoutsTabBar(tab: WorkoutsTab, onTab: (WorkoutsTab) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        WorkoutsTab.entries.forEach { t ->
+            val sel = tab == t
+            Card(
+                modifier = Modifier.weight(1f).clickable { onTab(t) },
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (sel) Accent.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.05f),
+                ),
+            ) {
+                Text(
+                    if (t == WorkoutsTab.Fuerza) "💪  Fuerza" else "🏃  Cardio",
+                    modifier = Modifier.padding(vertical = 10.dp).fillMaxWidth(),
+                    color = if (sel) Accent else OnDark,
+                    fontWeight = if (sel) FontWeight.Bold else FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FuerzaTab(
     profile: UserProfile,
     onAdd: () -> Unit,
     onStartLive: () -> Unit,

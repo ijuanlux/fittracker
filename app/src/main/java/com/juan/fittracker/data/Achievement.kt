@@ -31,6 +31,10 @@ enum class Achievement(
     RoutineWarrior("routine_warrior", "Guerrero de rutina", "Misma rutina completada 10 veces", "⚔", 60),
     VarietyKing("variety_king", "Variado al máx", "4 zonas distintas entrenadas", "🎯", 40),
     CustomRoutine("custom_routine", "Rutina propia", "Completó una rutina propia (no plantilla)", "✨", 20),
+    CardioStreakWeek("cardio_streak_week", "Constante cardio", "3+ sesiones de cardio en una semana", "💓", 30),
+    Maratonista("maratonista", "Maratonista rolo", "10 km de cardio acumulados", "🥇", 40),
+    CiclaRola("cicla_rola", "Cicla rola", "100 km en bici acumulados", "🚴", 50),
+    Salsero("salsero", "Salsero del Bachué", "5 sesiones de baile registradas", "💃", 25),
     ;
 
     companion object {

@@ -148,9 +148,11 @@ private fun HomeScreen(profile: UserProfile) {
     val workoutDao = remember(context) { Db.get(context).workoutDao() }
     val mealDao = remember(context) { Db.get(context).mealDao() }
     val achievementDao = remember(context) { Db.get(context).achievementDao() }
+    val cardioDao = remember(context) { Db.get(context).cardioDao() }
     val workouts by workoutDao.observeAll().collectAsState(initial = emptyList())
     val meals by mealDao.observeAll().collectAsState(initial = emptyList())
     val unlocks by achievementDao.observeAll().collectAsState(initial = emptyList())
+    val cardio by cardioDao.observeAll().collectAsState(initial = emptyList())
     val totalXp = Levels.totalXp(unlocks)
     val galletoideLevel = Levels.level(totalXp)
 
@@ -204,7 +206,7 @@ private fun HomeScreen(profile: UserProfile) {
         }
     }
 
-    LaunchedEffect(workouts.size, meals.size, today.steps, intakeToday) {
+    LaunchedEffect(workouts.size, meals.size, today.steps, intakeToday, cardio.size) {
         runCatching {
             val newOnes = AchievementsEngine.evaluateAndPersist(
                 context = context,
@@ -213,6 +215,7 @@ private fun HomeScreen(profile: UserProfile) {
                 todaySteps = today.steps,
                 intakeToday = intakeToday,
                 targetKcal = balance.target,
+                cardio = cardio,
             )
             newOnes.forEach { Notifier.showAchievement(context, it) }
         }

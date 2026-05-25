@@ -12,9 +12,9 @@ import java.util.Locale
 @Database(
     entities = [
         Workout::class, ExerciseSet::class, MealEntry::class, AchievementUnlock::class,
-        Routine::class, RoutineExerciseEntity::class,
+        Routine::class, RoutineExerciseEntity::class, CardioSession::class,
     ],
-    version = 4,
+    version = 6,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -22,6 +22,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun mealDao(): MealDao
     abstract fun achievementDao(): AchievementDao
     abstract fun routineDao(): RoutineDao
+    abstract fun cardioDao(): CardioDao
 }
 
 object Db {

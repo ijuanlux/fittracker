@@ -18,13 +18,14 @@ object AchievementsEngine {
         todaySteps: Long,
         intakeToday: Int,
         targetKcal: Int,
+        cardio: List<CardioSession> = emptyList(),
     ): List<Achievement> {
         val dao = Db.get(context).achievementDao()
         val already = dao.getAll().map { it.id }.toSet()
         val now = System.currentTimeMillis()
         val newlyUnlocked = mutableListOf<Achievement>()
 
-        val candidates = computeCandidates(workouts, meals, todaySteps, intakeToday, targetKcal)
+        val candidates = computeCandidates(workouts, meals, todaySteps, intakeToday, targetKcal, cardio)
         for (a in candidates) {
             if (a.id !in already) {
                 dao.unlock(AchievementUnlock(id = a.id, unlockedAtMs = now))
@@ -40,6 +41,7 @@ object AchievementsEngine {
         todaySteps: Long,
         intakeToday: Int,
         targetKcal: Int,
+        cardio: List<CardioSession> = emptyList(),
     ): Set<Achievement> {
         val out = mutableSetOf<Achievement>()
 
@@ -61,6 +63,33 @@ object AchievementsEngine {
             w.sets.sumOf { (it.reps * it.weightKg).toDouble() }
         }
         if (totalKg >= 10_000) out += Achievement.Volumen10t
+
+        // ---- Cardio ----
+        if (cardio.isNotEmpty()) {
+            val sevenDaysAgoMs = System.currentTimeMillis() - 7L * 24 * 3600 * 1000
+            val weekCount = cardio.count { it.dateEpochMs >= sevenDaysAgoMs }
+            if (weekCount >= 3) out += Achievement.CardioStreakWeek
+
+            val totalKm = cardio.sumOf { (it.distanceKm ?: 0f).toDouble() }
+            val runningKmEstimate = cardio
+                .filter { it.type == CardioType.Correr }
+                .sumOf {
+                    val km = (it.distanceKm ?: 0f).toDouble()
+                    if (km > 0) km else it.durationMin / 6.0
+                }
+            if (runningKmEstimate >= 10 || totalKm >= 10) out += Achievement.Maratonista
+
+            val bikeKm = cardio
+                .filter { it.type == CardioType.Bici }
+                .sumOf {
+                    val km = (it.distanceKm ?: 0f).toDouble()
+                    if (km > 0) km else it.durationMin / 3.0
+                }
+            if (bikeKm >= 100) out += Achievement.CiclaRola
+
+            val danceCount = cardio.count { it.type == CardioType.Baile }
+            if (danceCount >= 5) out += Achievement.Salsero
+        }
 
         return out
     }
